@@ -35,18 +35,16 @@ class DB:
 
 if __name__ == '__main__':
     db = DB()
-    # df = db.get_df(query = "SELECT TOP(1) * from [WF2020_US]")
-    # df2 = pd.read_excel(r"C:\Users\Admin\Documents\Tencent Files\544409644\FileRecv\211125 新品备货更新价格.xlsx")
-    # print(df2)
-    # for index, row in df2.iterrows():
-    #     itemNumber = row['货号']
-    #     Unit_Price = row['新价格\n(元/件）']
-    #     print(row['货号'])
-    #     query = f"UPDATE [dbo].[COGS 2] SET [Unit_Price] = {Unit_Price} WHERE [Item_Number] = '{itemNumber}'"
-    #     db.run(query)
-    query_export = 'SELECT * FROM [39F].[dbo].[COGS3] where 月 = 11'
-    df1 = db.get_df(query_export)
-    df1.to_csv(r'C:\Users\Admin\Documents\出仓成本_1125.csv',encoding="utf_8_sig")
+    query1 = f"UPDATE [dbo].[COGS 2] SET [Unit_Price] = {Unit_Price} WHERE [Item_Number] = '{itemNumber}'"
+    query2 = f"UPDATE [dbo].[COGS 2] SET [Unit_Price] = {Unit_Price} WHERE [Item_Number] = '{itemNumber}'"
+    db.run(query1)
+    db.run(query2)
+    # query_export1 = 'SELECT * FROM [39F].[dbo].[COGS]'
+    # query_export2 = 'SELECT * FROM [39F].[dbo].[COGS 2]'
+    # df1 = db.get_df(query_export1)
+    # df2 = db.get_df(query_export2)
+    # df1.to_csv(r'C:\Users\Admin\Documents\COGS.csv',encoding="utf_8_sig")
+    # df2.to_csv(r'C:\Users\Admin\Documents\COGS 2.csv', encoding="utf_8_sig")
 
     # query2 = "select * from dbo.WF2020_US union all select * from dbo.[Wayfair_US_Sales]"
     # df1 = db.get_df(query2)
