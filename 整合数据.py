@@ -1,7 +1,7 @@
 import xlwings as xw
 import os
 
-newbook = "2.xlsx"
+newbook = r"E:\OneDrive\广新\售后报告\2021 Wayfair payment\4.xlsx"
 app = xw.App(visible=True,add_book=False)
 wb1 = app.books.open(newbook)
 sht1 = wb1.sheets[0]
@@ -71,7 +71,10 @@ def collect(csvdoc,write_row):
         Item = sht.range("A" + str(row+1)).value[5:]
         Qty = sht.range("B" + str(row+1)).value[4:]
         csm = sht.range("A" + str(row+2)).value[9:]
-        rea = sht.range("B" + str(row+2)).value[7:]
+        try:
+            rea = sht.range("B" + str(row+2)).value[7:]
+        except:
+            rea = 'null'
         try:
             desc = sht.range("A" + str(row+4)).value[5:]
             RA = sht.range("A" + str(row + 3)).value[4:]
@@ -132,10 +135,10 @@ def collect_ca(csvdoc, write_row):
     # print("获取到所有的值:\n{0}".format(df))
 if __name__ == '__main__':
     write_row = 1
-    csv_list = bianli(r'C:\Users\Admin\PycharmProjects\pythonProject\US')
+    csv_list = bianli(r'E:\OneDrive\广新\售后报告\2021 Wayfair payment\2021 US PAYMENT')
     for csvdoc in csv_list:
         print(csvdoc)
         # write_row = collect_ca(csvdoc, write_row)
-        write_row = collect1(csvdoc, write_row)
+        write_row = collect(csvdoc, write_row)
     wb1.close()
     app.quit()
