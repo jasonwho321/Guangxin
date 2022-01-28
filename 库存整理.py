@@ -6,7 +6,7 @@ import os
 class write(object):
     def __init__(self):
         self.os_path = r'E:/OneDrive/广新/新品等级/库存历史 2021/'
-        self.save_path = r'E:\OneDrive\广新\新品等级\2021年10月库存整合表.xlsx'
+        self.save_path = r'E:\OneDrive\广新\新品等级\2021年12月库存整合表.xlsx'
         self.path_list = []
         for dir in os.listdir(r'E:\OneDrive\广新\新品等级\库存历史 2021'):
             self.path_list.append(os.path.join(self.os_path,dir))

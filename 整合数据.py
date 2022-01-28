@@ -1,6 +1,6 @@
 import xlwings as xw
 import os
-
+from datetime import datetime
 newbook = r"E:\OneDrive\广新\售后报告\2021 Wayfair payment\4.xlsx"
 app = xw.App(visible=True,add_book=False)
 wb1 = app.books.open(newbook)
@@ -16,7 +16,7 @@ def bianli(rootDir):
             bianli(dir)
     return os_list
 
-def collect1(csvdoc,write_row):
+def collect_pay(csvdoc,write_row):
     wb = app.books.open(csvdoc)
     sht = wb.sheets[0]
     lastrow = sht.used_range.last_cell.row
@@ -49,7 +49,7 @@ def collect1(csvdoc,write_row):
     wb.close()
     return write_row
 
-def collect(csvdoc,write_row):
+def collect_US(csvdoc,write_row):
     wb = app.books.open(csvdoc)
     sht = wb.sheets[0]
 
@@ -82,7 +82,6 @@ def collect(csvdoc,write_row):
             desc = sht.range("A" + str(row + 3)).value[5:]
             RA = 'null'
         remdate = sht.range("C" + str(row)).value
-
         sg_list = [rem_num,rem_date,RA,remdate,PO,Amo,Item,Qty,csm,rea,desc]
         sht1.range("A"+str(write_row)).value = sg_list
     wb1.save()
@@ -111,7 +110,7 @@ def collect_ca(csvdoc, write_row):
         year = sht.range("D" + str(row)).value
         if Amo == '':
             Amo = sht.range("D" + str(row)).value
-            year = "null"
+            year = "2021"
         Item = sht.range("A" + str(row + 1)).value[5:]
         Qty = sht.range("B" + str(row + 1)).value[4:]
         csm = sht.range("A" + str(row + 2)).value[9:]
@@ -122,7 +121,7 @@ def collect_ca(csvdoc, write_row):
         except:
             desc = sht.range("A" + str(row + 3)).value[5:]
             RA = 'null'
-        remdate = sht.range("C" + str(row)).value
+        remdate =str(year)+str(sht.range("C" + str(row)).value)[4:]
 
         sg_list = [rem_num, rem_date, RA, remdate, PO, Amo, Item, Qty, csm, rea, desc,year]
         sht1.range("A" + str(write_row)).value = sg_list
@@ -135,10 +134,11 @@ def collect_ca(csvdoc, write_row):
     # print("获取到所有的值:\n{0}".format(df))
 if __name__ == '__main__':
     write_row = 1
-    csv_list = bianli(r'E:\OneDrive\广新\售后报告\2021 Wayfair payment\2021 US PAYMENT')
+    csv_list = bianli(r'E:\OneDrive\广新\售后报告\2021 Wayfair payment\2021 CA PAYMENT')
     for csvdoc in csv_list:
         print(csvdoc)
-        # write_row = collect_ca(csvdoc, write_row)
-        write_row = collect(csvdoc, write_row)
+        # write_row = collect_pay(csvdoc, write_row)
+        write_row = collect_ca(csvdoc, write_row)
+        # write_row = collect(csvdoc, write_row)
     wb1.close()
     app.quit()

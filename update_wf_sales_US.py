@@ -4,7 +4,7 @@ import pandas as pd
 import pyodbc
 class Config:
     def __init__(self):
-        self.server='47.119.164.123'
+        self.server='iZ1wll9swpj1hbZ\SQLEXPRESS'
         self.database = '39F'
         self.username ='harryyan'
         self.password ='Aa12345678'
