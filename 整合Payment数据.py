@@ -1,7 +1,7 @@
 import xlwings as xw
 import os
 from datetime import datetime
-newbook = r"E:\OneDrive\广新\售后报告\2021 Wayfair payment\4.xlsx"
+newbook = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\1.xlsx"
 app = xw.App(visible=True,add_book=False)
 wb1 = app.books.open(newbook)
 sht1 = wb1.sheets[0]
@@ -134,11 +134,14 @@ def collect_ca(csvdoc, write_row):
     # print("获取到所有的值:\n{0}".format(df))
 if __name__ == '__main__':
     write_row = 1
-    csv_list = bianli(r'E:\OneDrive\广新\售后报告\2021 Wayfair payment\2021 CA PAYMENT')
+
+    # csv_list = bianli(r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA 22-Jan')
+    csv_list = bianli(r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22-Jan')
+
     for csvdoc in csv_list:
         print(csvdoc)
-        # write_row = collect_pay(csvdoc, write_row)
-        write_row = collect_ca(csvdoc, write_row)
-        # write_row = collect(csvdoc, write_row)
+        write_row = collect_pay(csvdoc, write_row)
+        # write_row = collect_ca(csvdoc, write_row)
+        # write_row = collect_US(csvdoc, write_row)
     wb1.close()
     app.quit()
