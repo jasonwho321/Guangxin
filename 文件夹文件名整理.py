@@ -5,7 +5,7 @@ app = xw.App(visible=True,add_book=False)
 book = app.books.add()
 sht = book.sheets[0]
 
-g = os.walk(r"Z:\『晓望集群』\『晓望梅观』\备货管理\2022 Furniture\211026整理\图片库整理\Office(331)")
+g = os.walk(r"Z:\『晓望集群』\『晓望梅观』\Morning Tree\ALL")
 i = 1
 for path,dir_list,file_list in g:
     for file_name in file_list:
@@ -14,7 +14,7 @@ for path,dir_list,file_list in g:
         i+=1
         print(i)
 
-book.save(r"Z:\『晓望集群』\『晓望梅观』\备货管理\2022 Furniture\211026整理\图片库整理\Office(331)\文件夹汇总表1108")
+book.save(r"Z:\『晓望集群』\『晓望梅观』\Morning Tree\ALL\文件夹汇总表0530.xlsx")
 book.close()
 app.quit()
 

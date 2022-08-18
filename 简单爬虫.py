@@ -25,4 +25,3 @@ for i in range(1,6):
         new = {'sale_price':sale_price,'listPrice':listPrice,'sku':sku,'AverageOverallRating':AverageOverallRating,'TotalSubmittedReviews':TotalSubmittedReviews}
         df = df.append(new, ignore_index=True)
 df.to_csv("C://Users//Admin//Downloads//chromedriver_win32 (1)//price_output_1130.csv")
-
