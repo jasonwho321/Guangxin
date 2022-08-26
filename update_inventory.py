@@ -155,7 +155,7 @@ def main(date, dir):
     db = DB()
 
     #####  download headers  #####
-    db_header = db.get_df('SELECT TOP(1) * FROM Inventory_2022_Taihua;').columns
+    db_header = db.get_df('SELECT TOP(1) * FROM Inventory_Taihua;').columns
     header = '],['.join(db_header)
     values = '?,' * len(db_header)
 
@@ -167,7 +167,7 @@ def main(date, dir):
     # insert to Database
     t0 = datetime.now()
     for index, row in df.iterrows():
-        db.cursor.execute(f"INSERT INTO Inventory_2022_Taihua ([{header}]) values({values[:-1]});" ,
+        db.cursor.execute(f"INSERT INTO Inventory_Taihua ([{header}]) values({values[:-1]});" ,
                           row['Country'],
                           row['Item_Number'],
                           row['Category'],
@@ -192,7 +192,7 @@ def main(date, dir):
 
 
 def run():
-    g = os.walk(r"E:\OneDrive\广新\新品等级\库存历史")
+    g = os.walk(r"D:\Shadowbot")
 
     full_path_list = []
     for path, dir_list, file_list in g:
