@@ -25,7 +25,7 @@ class Mail_get:
             #     folder=folder,
             #     date__gt=datetime.date.today())
             # 测试替换行
-            messages_from = imbox.messages(folder=folder,date__gt=datetime.date(2022, 7, 4))
+            messages_from = imbox.messages(folder=folder,date__gt=datetime.date(2022, 8, 4))
 
             print(messages_from)
             for uid, message in messages_from:
