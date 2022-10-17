@@ -106,19 +106,40 @@ def get_info(sku, c_sku, link_ava, waymore_num, new_url, prop):
     list_pic = sp.find_all_by_xpath(
         '/html/body//main//div//ul/li[@class="ProductDetailImageCarousel-carouselItem"]')
     pic_num = len(list_pic)
+    title = sp.find_all_by_xpath(
+        '/html/body//div/main/div//div/header/h1[@class="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor"]'
+    )
+    title = title[0].get_text()
+
+
 
     video_link = prop["mainCarousel"]["videos"]
+    salePrice = sp.find_all_by_xpath(
+        '/html/body//div/main/div//div//div//span[@font-size="5000"]'
+    )
+    salePrice = salePrice[0].get_text()
     link_list = []
     for i in video_link:
         link_list.append(i['sources'][0]['source'])
-    is_out_of_stock = prop["delivery"]["is_out_of_stock"]
-    print('已获取 {} 的全部信息'.format(c_sku))
-    return [sku[0], c_sku, link_ava, waymore_num, is_out_of_stock,
-            pic_num, len(link_list)] + link_list
+    try:
+        sp.find_by_xpath(
+            '/html/body//div/main/div//div/button[@class="OutOfStockOverlay OutOfStockOverlay--withAnchor"]'
+        )
+
+    except:
+        is_out_of_stock = 'in_stock'
+    else:
+        is_out_of_stock = 'out_of_stock'
+
+    output = [sku[0], c_sku, title, is_out_of_stock, salePrice]
+    print('已获取 {} 的全部信息\n{}'.format(c_sku, output))
+    return output
+    # return [sku[0], c_sku, link_ava, waymore_num, is_out_of_stock,
+    #         pic_num, len(link_list)] + link_list
 
 
 def get_all_sku(sku, waymore_num, table1):
-    print('开始获取子SKU')
+
     sp = web.create(
         'https://www.wayfair.com/keyword.php?keyword=' +
         sku[0],
@@ -138,29 +159,35 @@ def get_all_sku(sku, waymore_num, table1):
         prop = application["props"]
         categories = prop['options']['standardOptions']
         exceptions = prop['options']['exceptions']
-        all_combination, cate_dict = get_all_combine(categories)
+        if len(categories) > 0:
+            all_combination, cate_dict = get_all_combine(categories)
 
-        # all_list = []
-        url = web.get_active().get_url()
-        for com in all_combination:
-            if com not in exceptions:
-                # all_list.append(com)
-                x = 1
-                piids = ''
-                c_sku = ''
-                for piid in com:
-                    if x == 1:
-                        piids = piid
-                        c_sku = cate_dict[piid]
-                    else:
-                        piids = piids + "%2C" + piid
-                        c_sku = c_sku + '&' + cate_dict[piid]
-                    x += 1
-                new_url = url + "&piid=" + piids
-                list1 = get_info(
-                    sku, c_sku, link_ava, waymore_num, new_url, prop)
-                table1.append(list1)
-
+            # all_list = []
+            url = web.get_active().get_url()
+            for com in all_combination:
+                if com not in exceptions:
+                    # all_list.append(com)
+                    x = 1
+                    piids = ''
+                    c_sku = ''
+                    for piid in com:
+                        if x == 1:
+                            piids = piid
+                            c_sku = cate_dict[piid]
+                        else:
+                            piids = piids + "%2C" + piid
+                            c_sku = c_sku + '&' + cate_dict[piid]
+                        x += 1
+                    new_url = url + "&piid=" + piids
+                    list1 = get_info(
+                        sku, c_sku, link_ava, waymore_num, new_url, prop)
+                    table1.append(list1)
+        else:
+            url = web.get_active().get_url()
+            new_url = url
+            list1 = get_info(
+                sku, sku[0], link_ava, waymore_num, new_url, prop)
+            table1.append(list1)
     except Exception:
         pic_num = '-'
         c_sku = '-'
@@ -206,4 +233,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(args)
+    main(1)

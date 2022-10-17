@@ -1,32 +1,61 @@
-import xlwings as xw
+from selenium import webdriver
+from msedge.selenium_tools import Edge, EdgeOptions
+from time import sleep
+chrome_options = webdriver.ChromeOptions() # 代理IP,由快代理提供
+chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+chrome_options.add_experimental_option('useAutomationExtension', False)
+chrome = webdriver.Chrome(r"D:\chromedriver.exe",options=chrome_options)
+chrome.get('https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html')
+sleep(3)
+newTab = 'window.open("https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html");' #就当成js语句吧
+chrome.execute_script(newTab) #输出js语句
+cookies = chrome.get_cookies()
+final_cookies = ''
+for cookie in cookies:
+    item = cookie['name']+'='+cookie['value']+'; '
+    final_cookies = final_cookies+item
+final_cookies = final_cookies[:-2]
 
-if __name__ == '__main__':
-    app = xw.App(visible=True,add_book=False)
-    book = app.books.open(r'E:\OneDrive\广新\SKU打标\211011 晓望在仓SKU.xlsx')
-    book1 = app.books.open(r'E:\OneDrive\广新\SKU打标\BulkEdit_13926_汇总.xlsx')
-    sht = book.sheets[0]
-    sku_list = sht.range('B2:B1034').value
-    cat_list = sht.range('C1:AH1').value
-    for sku in sku_list:
-        i = 0
-        while True:
-            try:
-                sht1 = book1.sheets[i]
-                range1 = sht1.used_range.shape[0]
-                range2 = sht1.used_range.shape[1]
-                lookup_list = sht1.range("B7:B"+str(range1)).value
-                look_cat_list = sht1.range((3, 7), (3, range2)).value
-                if sku in lookup_list:
-                    row_loc = lookup_list.index(sku)+7
-                    for cat in cat_list:
-                        if cat in look_cat_list:
-                            col_loc = look_cat_list.index(cat) + 7
-                            fill_row_loc = sku_list.index(sku)+2
-                            fill_col_loc = cat_list.index(cat) +3
-                            sht.range((fill_row_loc, fill_col_loc)).value = sht1.range((row_loc, col_loc)).value
+# chrome.delete_all_cookies()
+# chrome.
+# chrome.get('https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html')
+# print(chrome.page_source)
+# 百度查IP chrome.get('https://www.baidu.com/s?ie=UTF-8&wd=ip') print(chrome.page_source)
+# chrome.quit() #退出
 
-                i += 1
-            except Exception as e:
-                print(i)
-                print(e)
-                break
+
+# options = EdgeOptions()
+#
+# options.add_experimental_option('excludeSwitches', ['enable-automation'])
+# options.add_argument("--disable-blink-features=AutomationControlled")
+# options.add_experimental_option('useAutomationExtension', False)
+#
+#
+#
+# options.use_chromium = True
+# # options.add_argument("--proxy-server=http://101.68.58.135:8085")
+# options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.34")
+#
+# driver = Edge(executable_path=r"D:\msedgedriver.exe", options=options)
+# driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+#    'source': 'Object.defineProperty(navigator, "webdriver", {get: () => undefined})'
+# })
+
+from time import sleep
+# 设置代理
+
+
+# 查看本机ip，查看代理是否起作用
+# driver.get("http://httpbin.org/ip")
+
+# driver.get('https://www.wayfair.com')
+# driver.delete_all_cookies()
+# driver.get('https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html')
+# url = 'https://www.wayfair.com/furniture/pdp/williston-forge-hartmann-counter-bar-stool-w004382256.html'
+# for i in range(1000):
+# driver.get(url)
+# driver.close()
+# print(driver.page_source)
+
+# 退出，清除浏览器缓存
