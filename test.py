@@ -1,22 +1,40 @@
 from selenium import webdriver
 from msedge.selenium_tools import Edge, EdgeOptions
 from time import sleep
-chrome_options = webdriver.ChromeOptions() # 代理IP,由快代理提供
-chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
-chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_experimental_option(
+    'excludeSwitches', ['enable-automation'])
+chrome_options.add_argument(
+    "--disable-blink-features=AutomationControlled")
+# chrome_options.add_argument("--headless")
 chrome_options.add_experimental_option('useAutomationExtension', False)
-chrome = webdriver.Chrome(r"D:\chromedriver.exe",options=chrome_options)
-chrome.get('https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html')
-sleep(3)
-newTab = 'window.open("https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html");' #就当成js语句吧
-chrome.execute_script(newTab) #输出js语句
+chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
+chrome.implicitly_wait(1)
+# chrome.get('https://www.baidu.com/')
+chrome.get(
+    'https://www.wayfair.com/home-improvement/sb0/single-vanities-c531826.html')
+sleep(10)
+
+# 就当成js语句吧
+
+# chrome.implicitly_wait(20)
+# chrome.get(
+#     'https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html')
+# sleep(20)
+# newTab = 'window.open("https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html");'
+# chrome.execute_script(newTab)
+
+
 cookies = chrome.get_cookies()
 final_cookies = ''
 for cookie in cookies:
-    item = cookie['name']+'='+cookie['value']+'; '
-    final_cookies = final_cookies+item
+    item = cookie['name'] + '=' + cookie['value'] + '; '
+    final_cookies = final_cookies + item
 final_cookies = final_cookies[:-2]
-
+chrome.delete_all_cookies()
+# chrome.quit()
+print(final_cookies)
 # chrome.delete_all_cookies()
 # chrome.
 # chrome.get('https://www.wayfair.com/furniture/pdp/hazelwood-home-charlton-vintage-upholstered-side-chair-haze2466.html')
