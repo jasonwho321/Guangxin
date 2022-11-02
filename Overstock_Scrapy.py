@@ -142,6 +142,7 @@ def process(num1, num2, table1):
     cookie = get_cookies()
     for link in data[num1:num2]:
         print("总体进度：{}/{}".format(data.index(link), len(data)))
+        link = link[0]
         proxy = get_proxy()
         table1, proxy, cookie = get_info(link, table1, proxy, cookie)
 
