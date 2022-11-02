@@ -118,9 +118,8 @@ def not_bot1(new_url, proxy, cookie):
             result = 0
     return soup, proxy, sp, cookie
 
-def get_info(link, new_url, proxy, cookie):
-    soup, proxy, sp, cookie = not_bot1(new_url, proxy, cookie)
-    output_link_list = []
+def get_info(link, table1,proxy, cookie):
+    soup, proxy, sp, cookie = not_bot1(link, proxy, cookie)
     try:
         text = soup.find_all('script', id='__NEXT_DATA__')
         options = json.loads(text[0])['props']['pageProps']['product']['options']
@@ -130,12 +129,12 @@ def get_info(link, new_url, proxy, cookie):
             decription = option['decription']
             qtyOnHand = option['qtyOnHand']
             output = [link,subSku,decription,price,qtyOnHand]
-            output_link_list.append(output)
+            table1.append(output)
     except Exception as e:
         print(e)
         pass
     print('已获取{}全部信息'.format(link))
-    return output_link_list, proxy, cookie
+    return table1, proxy, cookie
 
 def process(num1, num2, table1):
     csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_list.csv'
