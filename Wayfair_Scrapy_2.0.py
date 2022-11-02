@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import json
 import random
 from selenium import webdriver
-from time import sleep, time
+from time import sleep, time,strftime,gmtime
 from multiprocessing import Process,Manager
 
 
@@ -391,4 +391,4 @@ if __name__ == '__main__':
     s = time()
     main()
     e = time()
-    print('总用时：{}s'.format(str(e - s)))
+    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
