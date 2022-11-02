@@ -6,7 +6,7 @@ import json
 import random
 from selenium import webdriver
 from time import sleep, time
-from multiprocessing import Process
+from multiprocessing import Process,Manager
 
 
 
@@ -145,7 +145,6 @@ def not_bot1(new_url, proxy, cookie):
         allow_redirects=False)
     while sp.status_code == 301 or sp.status_code == 302:
         url = sp.headers['Location']
-
         sp = requests.session().get(url, proxies={"http": "http://{}".format(proxy)}, headers=headers,
                                     allow_redirects=False)
     content = sp.content
@@ -155,6 +154,7 @@ def not_bot1(new_url, proxy, cookie):
     while result == 0:
         sleep(3)
         try:
+
             e = soup.find_all('svg', class_="nav-StoreLogo-svg")
             e=e[0]
             result = 1
@@ -208,6 +208,7 @@ def not_bot2(new_url, proxy, cookie):
     while result == 0:
         sleep(3)
         try:
+
             e = soup.find_all('svg', class_="nav-StoreLogo-svg")
             e=e[0]
             result = 1
@@ -230,12 +231,10 @@ def not_bot2(new_url, proxy, cookie):
                 allow_redirects=False)
             while sp.status_code == 301 or sp.status_code == 302:
                 url = sp.headers['Location']
-
                 sp = requests.session().get(url, proxies={"http": "http://{}".format(proxy)}, headers=headers,
                                             allow_redirects=False)
             content = sp.content
             soup = BeautifulSoup(content, "html.parser")
-
             result = 0
     return soup, proxy, cookie
 
@@ -245,6 +244,12 @@ def get_info(sku, c_sku, new_url, proxy, cookie):
     title = sp.find_all(
         'h1', class_="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor")
     title = title[0].get_text()
+    rating = sp.find_all(
+        'span', class_="ProductRatingNumberWithCount-rating")
+    rating = rating[0].get_text()
+    review = sp.find_all(
+        'span', class_="ProductRatingNumberWithCount-count ProductRatingNumberWithCount-count--link")
+    review = review[0].get_text()
     salePrice = sp.find_all('span', attrs={"font-size": "5000"})
     salePrice = salePrice[0].get_text()
     button_list = sp.find_all(
@@ -254,7 +259,7 @@ def get_info(sku, c_sku, new_url, proxy, cookie):
     else:
         is_out_of_stock = 'out_of_stock'
 
-    output = [sku[0], c_sku, title, is_out_of_stock, salePrice]
+    output = [sku[0], c_sku, title, is_out_of_stock, salePrice,rating,review]
     print('已获取 {} 的全部信息\n{}'.format(c_sku, output))
     return output, proxy, cookie
     # return [sku[0], c_sku, link_ava, waymore_num, is_out_of_stock,
@@ -283,11 +288,10 @@ def get_all_sku(sku, table1, proxy, cookie):
             exceptions.append(new_i)
         if len(categories) > 0:
             all_combination, cate_dict = get_all_combine(categories)
-
             # all_list = []
-            url1 = json.loads(sp.headers['x-wayfair-workers-debug'])["host"]
-            url2 = json.loads(sp.headers['x-wayfair-workers-debug'])["path"]
-            url = 'https://' + url1 + url2
+            # url1 = json.loads(sp.headers['x-wayfair-workers-debug'])["host"]
+            # url2 = json.loads(sp.headers['x-wayfair-workers-debug'])["path"]
+            url = sp.url
             for com in all_combination:
                 com.sort()
                 if com not in exceptions:
@@ -309,14 +313,15 @@ def get_all_sku(sku, table1, proxy, cookie):
                         sku, c_sku, new_url, proxy, cookie)
                     table1.append(list1)
         else:
-            url1 = json.loads(sp.headers['x-wayfair-workers-debug'])["host"]
-            url2 = json.loads(sp.headers['x-wayfair-workers-debug'])["path"]
-            new_url = 'https://' + url1 + url2
+            # url1 = json.loads(sp.headers['x-wayfair-workers-debug'])["host"]
+            # url2 = json.loads(sp.headers['x-wayfair-workers-debug'])["path"]
+            new_url = sp.url
 
             list1, proxy, cookie = get_info(
                 sku, sku[0], new_url, proxy, cookie)
             table1.append(list1)
-    except Exception:
+    except Exception as e:
+        print(e)
         c_sku = '-'
         is_out_of_stock = '-'
         title = '-'
@@ -326,21 +331,16 @@ def get_all_sku(sku, table1, proxy, cookie):
             c_sku,
             title,
             is_out_of_stock,
-            salePrice]
+            salePrice,'-','-']
         table1.append(list1)
     print('已获取{}所有sku信息'.format(sku[0]))
     return table1, proxy, cookie
 
 
-def process(num1, num2, n):
+def process(num1, num2, table1):
     csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\SKU_list.csv'
     data = read_src(csv_path)
 
-    time = datetime.today().strftime("%Y%m%d")
-    csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\PriceOutput_' + \
-        time + '_' + n + '.csv'
-
-    table1 = []
     cookie = get_cookies()
     for sku in data[num1:num2]:
         print("总体进度：{}/{}".format(data.index(sku), len(data)))
@@ -353,21 +353,23 @@ def process(num1, num2, n):
         # waymore_num='-'
         table1, proxy, cookie = get_all_sku(sku, table1, proxy, cookie)
 
-    with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
-        writer = csv.writer(f, dialect='excel')
-        writer.writerows(table1)
-    pass
+    return table1
 
 
 def main():
+
+    time = datetime.today().strftime("%Y%m%d")
+
     process_list = []
-    p1 = Process(target=process, args=(None, 450, "1"))
+    manager = Manager()
+    table1 = manager.list() #也可以使用列表dict
+    p1 = Process(target=process, args=(None, 450, table1))
     p1.start()
-    p2 = Process(target=process, args=(450, 900, "2"))
+    p2 = Process(target=process, args=(450, 900, table1))
     p2.start()
-    p3 = Process(target=process, args=(900, 1250, "3"))
+    p3 = Process(target=process, args=(900, 1250, table1))
     p3.start()
-    p4 = Process(target=process, args=(1250, None, "4"))
+    p4 = Process(target=process, args=(1250, None, table1))
     p4.start()
 
     process_list.append(p1)
@@ -378,9 +380,15 @@ def main():
     for t in process_list:
         t.join()
 
+    csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\PriceOutput_' + \
+        time + '.csv'
+    with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
+        writer = csv.writer(f, dialect='excel')
+        writer.writerows(table1)
+    pass
 
 if __name__ == '__main__':
     s = time()
     main()
     e = time()
-    print('总用时：{}'.format(str(e - s)))
+    print('总用时：{}s'.format(str(e - s)))
