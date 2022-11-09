@@ -167,10 +167,10 @@ if __name__ == '__main__':
     # newbook2 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\US_DUC_" + month + ".xlsx"
     # newbook3 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_PAY_" + month + ".xlsx"
     # newbook4 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_DUC_" + month + ".xlsx"
-    # newbook1 = r"C:\Users\Admin\Downloads\US_PAY.xlsx"
-    # newbook2 = r"C:\Users\Admin\Downloads\US_DUC.xlsx"
-    newbook1 = r"C:\Users\Admin\Downloads\CA_PAY.xlsx"
-    newbook2 = r"C:\Users\Admin\Downloads\CA_DUC.xlsx"
+    newbook1 = r"C:\Users\Admin\Downloads\US_PAY.xlsx"
+    newbook2 = r"C:\Users\Admin\Downloads\US_DUC.xlsx"
+    # newbook1 = r"C:\Users\Admin\Downloads\CA_PAY.xlsx"
+    # newbook2 = r"C:\Users\Admin\Downloads\CA_DUC.xlsx"
     # newbook3 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_PAY.xlsx"
     # newbook4 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_DUC.xlsx"
     newbook_list = [newbook1, newbook2]
@@ -213,7 +213,7 @@ if __name__ == '__main__':
         'rea',
         'desc']
     sht2.range('A1').value = header_list2
-    csv_list = bianli(r'C:\Users\Admin\Downloads\2022WayfairCA')
+    csv_list = bianli(r'C:\Users\Admin\Downloads\2022WayfairUS')
 
     for csvdoc in csv_list:
         print('进度：{}/{}'.format(str(csv_list.index(csvdoc)),str(len(csv_list))))
