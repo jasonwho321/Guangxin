@@ -7,7 +7,7 @@ import random
 from selenium import webdriver
 from time import sleep, time, strftime, gmtime
 from multiprocessing import Process, Manager
-from functools import reduce
+
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
 referer_CA = 'https://www.wayfair.ca/v/global_help/global_help_app/index'
 link_list_US = ['https://www.wayfair.com/furniture/pdp/steelside-desk-and-chair-set-tnfi2412.html',
