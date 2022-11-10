@@ -45,10 +45,9 @@ def mapping_sku(csv_priceout, csv_map):
     df_map = pd.read_csv(csv_map)
     df_map = df_map.to_dict('list')
     df_map = dict(zip(df_map['OSSKU'], df_map['Partner SKU']))
-
     df_price['OSSKU'] = df_price['OSSKU'].str.strip()
     df_price['PartNumber'] = df_price['OSSKU'].map(df_map, na_action=None)
-    df_price.to_csv(csv_priceout)
+    df_price.to_csv(csv_priceout,index=False)
 
 
 def process(num1, num2, table1):
@@ -71,7 +70,7 @@ def process(num1, num2, table1):
             soup = json.loads(ele_list.get_attribute('innerHTML'))
             table1 = get_info(link, table1, soup)
         except:
-            table1.append([link, '-', '-', '-', '-'])
+            table1.append([link, '-', '-'.join([link[-8:], '000-000']),'-', '-', '-'])
 
 
 def main():
@@ -112,8 +111,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # s = time()
-    # main()
-    # e = time()
-    # print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
-    mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
+    s = time()
+    main()
+    e = time()
+    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
