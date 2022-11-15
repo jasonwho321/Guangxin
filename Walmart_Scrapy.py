@@ -83,6 +83,22 @@ def process(num1, num2, table1):
         link = link[0]
         try:
             chrome.get(link)
+            n = 1
+            while n < 10:
+                try:
+                    ele_list = chrome.find_elements_by_xpath("//*[contains(text(),'human?')]")
+                    e = ele_list[0]
+                    newTab = 'window.open("{}","_blank");'.format(link)
+                    chrome.execute_script(newTab)
+                    windows = chrome.window_handles
+                    chrome.switch_to.window(windows[n])
+                    chrome.implicitly_wait(20)
+                    n += 1
+                except BaseException:
+                    # chrome.delete_all_cookies()
+                    # chrome.close()
+                    n = 10
+
             ele_list = chrome.find_element_by_id("__NEXT_DATA__")
             soup = json.loads(ele_list.get_attribute('innerHTML'))
             table1 = get_info(link, table1, soup)
