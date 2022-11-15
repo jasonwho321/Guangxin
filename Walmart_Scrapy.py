@@ -78,13 +78,6 @@ def process(num1, num2, table1):
     chrome_options.add_argument(
         "--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument("--proxy-server=http://{}".format(get_proxy()['proxy']))
-    preferences = {
-        "webrtc.ip_handling_policy": "disable_non_proxied_udp",
-        "webrtc.multiple_routes_enabled": False,
-        "webrtc.nonproxied_udp_enabled": False
-    }
-    chrome_options.add_experimental_option("prefs", preferences)
     chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
     csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_list.csv'
     data = read_src(csv_path)
@@ -99,14 +92,21 @@ def process(num1, num2, table1):
                 try:
                     ele_list = chrome.find_elements_by_xpath("//*[contains(text(),'human?')]")
                     e = ele_list[0]
-                    chrome.delete_all_cookies()
-                    chrome.close()
-                    chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
-                    sleep(3)
-                    chrome.get(link)
+                    newTab = 'window.open("{}","_blank");'.format(link)
+                    chrome.execute_script(newTab)
+                    windows = chrome.window_handles
+                    chrome.switch_to.window(windows[n])
+                    chrome.implicitly_wait(20)
                     n += 1
                 except BaseException as e:
                     print(e)
+                    First_handle = chrome.current_window_handle
+                    l = chrome.window_handles
+                    for handle in l:
+                        if handle != First_handle:
+                            chrome.switch_to.window(handle)
+                            chrome.close()
+                            chrome.switch_to.window(First_handle)
                     n = 10
 
             ele_list = chrome.find_element_by_id("__NEXT_DATA__")
