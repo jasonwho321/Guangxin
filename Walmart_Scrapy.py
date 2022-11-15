@@ -102,6 +102,8 @@ def main():
     process_list = []
     manager = Manager()
     table1 = manager.list()  # 也可以使用列表dict
+    p0 = Process(target=process, args=(None, None, []))
+    p0.start()
     p1 = Process(target=process, args=(None, len1, table1))
     p1.start()
     p2 = Process(target=process, args=(len1, len2, table1))
@@ -111,6 +113,7 @@ def main():
     p4 = Process(target=process, args=(len3, None, table1))
     p4.start()
 
+    process_list.append(p0)
     process_list.append(p1)
     process_list.append(p2)
     process_list.append(p3)
@@ -124,9 +127,9 @@ def main():
     with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
         writer = csv.writer(f, dialect='excel')
         writer.writerows(table1)
-    mapping_sku(
-        csv_path1,
-        r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_Mapping.csv')
+    # mapping_sku(
+    #     csv_path1,
+    #     r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_Mapping.csv')
 
 
 if __name__ == '__main__':
