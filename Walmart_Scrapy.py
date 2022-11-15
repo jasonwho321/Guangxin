@@ -4,6 +4,8 @@ import json
 from selenium import webdriver
 import pandas as pd
 from multiprocessing import Process, Manager
+
+from selenium.webdriver import ActionChains
 from time import time, strftime, gmtime, sleep
 import requests
 
@@ -92,11 +94,15 @@ def process(num1, num2, table1):
                 try:
                     ele_list = chrome.find_elements_by_xpath("//*[contains(text(),'human?')]")
                     e = ele_list[0]
-                    newTab = 'window.open("{}","_blank");'.format(link)
-                    chrome.execute_script(newTab)
-                    windows = chrome.window_handles
-                    chrome.switch_to.window(windows[n])
-                    chrome.implicitly_wait(20)
+                    element = chrome.find_elements_by_xpath("//*[contains(text(),'按住')]")
+                    action = ActionChains(chrome)
+                    action.click_and_hold(element)
+                    action.perform()
+                    sleep(10)
+                    action.release(element)
+                    action.perform()
+                    sleep(0.2)
+                    action.release(element)
                     n += 1
                 except BaseException as e:
                     print(e)
