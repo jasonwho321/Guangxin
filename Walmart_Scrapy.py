@@ -102,7 +102,7 @@ def main():
     process_list = []
     manager = Manager()
     table1 = manager.list()  # 也可以使用列表dict
-    p0 = Process(target=process, args=(None, None, []))
+    p0 = Process(target=process, args=(445, 555, []))
     p0.start()
     p1 = Process(target=process, args=(None, len1, table1))
     p1.start()
