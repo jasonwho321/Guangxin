@@ -4,7 +4,7 @@ import json
 from selenium import webdriver
 import pandas as pd
 from multiprocessing import Process, Manager
-from time import time, strftime, gmtime
+from time import time, strftime, gmtime, sleep
 
 # /props/pageProps/initialData/data/product/availabilityStatus
 # props.pageProps.initialData.data.product.priceInfo.currentPrice.price
@@ -90,8 +90,8 @@ def process(num1, num2, table1):
                     e = ele_list[0]
                     chrome.delete_all_cookies()
                     chrome.close()
+                    sleep(3)
                     chrome.get(link)
-                    chrome.implicitly_wait(20)
                     n += 1
                 except BaseException:
 
