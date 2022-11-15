@@ -370,7 +370,7 @@ def process(num1, num2, table1, country):
     data = read_src(csv_path)
     cookie = get_cookies(country)
     for sku in data[num1:num2]:
-        print("总体进度：{}/{}".format(data.index(sku), len(data)))
+        print("总体进度：{}/{}".format(data.index(sku), str(num2)))
         proxy = '221.131.141.243:9091'
         # sp,proxy,sp1 = not_bot1('https://www.wayfair.com/keyword.php?keyword=' +
         #              sku[0],)

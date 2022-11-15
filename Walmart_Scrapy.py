@@ -79,7 +79,7 @@ def process(num1, num2, table1):
     data = read_src(csv_path)
     for link in data[num1:num2]:
         chrome.implicitly_wait(20)
-        print("总体进度：{}/{}".format(data.index(link), len(data)))
+        print("总体进度：{}/{}".format(data.index(link), str(num2)))
         link = link[0]
         try:
             chrome.get(link)
