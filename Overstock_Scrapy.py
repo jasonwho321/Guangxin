@@ -1,12 +1,10 @@
+from multiprocessing import Process, Manager
 import csv
-from datetime import datetime
 import json
+import pandas as pd
+from datetime import datetime
 from selenium import webdriver
 from time import time, strftime, gmtime
-import pandas as pd
-from multiprocessing import Process, Manager
-
-
 def get_info(link, table1, soup):
     try:
         options = soup['props']['pageProps']['product']['options']

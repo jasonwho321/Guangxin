@@ -2,20 +2,37 @@ import csv
 from datetime import datetime
 import json
 from selenium import webdriver
-from time import time, strftime, gmtime
 import pandas as pd
 from multiprocessing import Process, Manager
+from time import time, strftime, gmtime
+
+# /props/pageProps/initialData/data/product/availabilityStatus
+# props.pageProps.initialData.data.product.priceInfo.currentPrice.price
+
+# props.pageProps.initialData.data.product.variantsMap.3U2P1HKVUSGX.priceInfo.currentPrice.price
+# props.pageProps.initialData.data.product.variantProductIdMap
+# props.pageProps.initialData.data.product.variantCriteria[0].variantList[{}].name
 
 
 def get_info(link, table1, soup):
     try:
-        options = soup['props']['pageProps']['product']['options']
-        for option in options:
-            price = option['price']
-            subsku = option['subSku']
-            decription = option['decription']
-            qtyonhand = option['qtyOnHand']
-            output = [link, subsku, '-'.join([link[-8:], subsku]), decription, price, qtyonhand]
+        product = soup['props']['pageProps']['initialData']['data']['product']
+        if product['variantProductIdMap']:
+            variantProductIdMap = product['variantProductIdMap']
+            for i in variantProductIdMap:
+                color = i
+                id = variantProductIdMap[i]
+                option = product['variantsMap'][id]
+                price = option['priceInfo']['currentPrice']['price']
+                avlib = option['availabilityStatus']
+                output = [link, color, price, avlib]
+                print(output)
+                table1.append(output)
+
+        else:
+            price = product['priceInfo']['currentPrice']['price']
+            avlib = product['availabilityStatus']
+            output = [link, '-', price, avlib]
             print(output)
             table1.append(output)
     except BaseException as e:
@@ -45,7 +62,6 @@ def mapping_sku(csv_priceout, csv_map):
     df_map = pd.read_csv(csv_map)
     df_map = df_map.to_dict('list')
     df_map = dict(zip(df_map['OSSKU'], df_map['Partner SKU']))
-
     df_price['OSSKU'] = df_price['OSSKU'].str.strip()
     df_price['PartNumber'] = df_price['OSSKU'].map(df_map, na_action=None)
     df_price.to_csv(csv_priceout)
@@ -59,7 +75,7 @@ def process(num1, num2, table1):
         "--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option('useAutomationExtension', False)
     chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
-    csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_list.csv'
+    csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_list.csv'
     data = read_src(csv_path)
     for link in data[num1:num2]:
         chrome.implicitly_wait(20)
@@ -70,12 +86,12 @@ def process(num1, num2, table1):
             ele_list = chrome.find_element_by_id("__NEXT_DATA__")
             soup = json.loads(ele_list.get_attribute('innerHTML'))
             table1 = get_info(link, table1, soup)
-        except:
-            table1.append([link, '-', '-', '-', '-'])
+        except BaseException:
+            table1.append([link, '-', '-', '-'])
 
 
 def main():
-    csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_list.csv'
+    csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_list.csv'
     data = read_src(csv_path)
     lenth = len(data)
     len1 = round(lenth / 4)
@@ -102,18 +118,20 @@ def main():
 
     for t in process_list:
         t.join()
-    csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_' + \
+    csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\Walmart_PriceOutput_' + \
                 date + '.csv'
-    table1.insert(0, ['Link', 'subSKU', 'OSSKU', 'Color', 'price', 'OnHand'])
+    table1.insert(0, ['Link', 'color', 'price', 'stock'])
     with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
         writer = csv.writer(f, dialect='excel')
         writer.writerows(table1)
-    mapping_sku(csv_path1, r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
+    mapping_sku(
+        csv_path1,
+        r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_Mapping.csv')
 
 
 if __name__ == '__main__':
-    # s = time()
-    # main()
-    # e = time()
-    # print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
-    mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
+    s = time()
+    main()
+    e = time()
+    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    # mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
