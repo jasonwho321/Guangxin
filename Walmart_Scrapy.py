@@ -88,15 +88,13 @@ def process(num1, num2, table1):
                 try:
                     ele_list = chrome.find_elements_by_xpath("//*[contains(text(),'human?')]")
                     e = ele_list[0]
-                    newTab = 'window.open("{}","_blank");'.format(link)
-                    chrome.execute_script(newTab)
-                    windows = chrome.window_handles
-                    chrome.switch_to.window(windows[n])
+                    chrome.delete_all_cookies()
+                    chrome.close()
+                    chrome.get(link)
                     chrome.implicitly_wait(20)
                     n += 1
                 except BaseException:
-                    # chrome.delete_all_cookies()
-                    # chrome.close()
+
                     n = 10
 
             ele_list = chrome.find_element_by_id("__NEXT_DATA__")
@@ -118,8 +116,6 @@ def main():
     process_list = []
     manager = Manager()
     table1 = manager.list()  # 也可以使用列表dict
-    p0 = Process(target=process, args=(445, 555, []))
-    p0.start()
     p1 = Process(target=process, args=(None, len1, table1))
     p1.start()
     p2 = Process(target=process, args=(len1, len2, table1))
@@ -129,7 +125,6 @@ def main():
     p4 = Process(target=process, args=(len3, None, table1))
     p4.start()
 
-    process_list.append(p0)
     process_list.append(p1)
     process_list.append(p2)
     process_list.append(p3)
