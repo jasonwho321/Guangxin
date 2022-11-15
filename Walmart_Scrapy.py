@@ -94,15 +94,11 @@ def process(num1, num2, table1):
                 try:
                     ele_list = chrome.find_elements_by_xpath("//*[contains(text(),'human?')]")
                     e = ele_list[0]
-                    element = chrome.find_elements_by_xpath("//*[contains(text(),'按住')]")
-                    action = ActionChains(chrome)
-                    action.click_and_hold(element)
-                    action.perform()
-                    sleep(10)
-                    action.release(element)
-                    action.perform()
-                    sleep(0.2)
-                    action.release(element)
+                    newTab = 'window.open("{}","_blank");'.format(link)
+                    chrome.execute_script(newTab)
+                    windows = chrome.window_handles
+                    chrome.switch_to.window(windows[n])
+                    sleep(20)
                     n += 1
                 except BaseException as e:
                     print(e)
