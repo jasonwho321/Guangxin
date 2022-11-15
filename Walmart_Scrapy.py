@@ -5,6 +5,7 @@ from selenium import webdriver
 import pandas as pd
 from multiprocessing import Process, Manager
 from time import time, strftime, gmtime, sleep
+import requests
 
 # /props/pageProps/initialData/data/product/availabilityStatus
 # props.pageProps.initialData.data.product.priceInfo.currentPrice.price
@@ -66,6 +67,9 @@ def mapping_sku(csv_priceout, csv_map):
     df_price['PartNumber'] = df_price['OSSKU'].map(df_map, na_action=None)
     df_price.to_csv(csv_priceout)
 
+def get_proxy():
+    # return {'proxy': '221.131.141.243:9091'}
+    return requests.get("http://127.0.0.1:5010/get/").json()
 
 def process(num1, num2, table1):
     chrome_options = webdriver.ChromeOptions()
@@ -74,6 +78,13 @@ def process(num1, num2, table1):
     chrome_options.add_argument(
         "--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option('useAutomationExtension', False)
+    chrome_options.add_argument("--proxy-server=http://{}".format(get_proxy()['proxy']))
+    preferences = {
+        "webrtc.ip_handling_policy": "disable_non_proxied_udp",
+        "webrtc.multiple_routes_enabled": False,
+        "webrtc.nonproxied_udp_enabled": False
+    }
+    chrome_options.add_experimental_option("prefs", preferences)
     chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
     csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_list.csv'
     data = read_src(csv_path)
