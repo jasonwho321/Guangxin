@@ -90,6 +90,7 @@ def process(num1, num2, table1):
                     e = ele_list[0]
                     chrome.delete_all_cookies()
                     chrome.close()
+                    chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
                     sleep(3)
                     chrome.get(link)
                     n += 1
