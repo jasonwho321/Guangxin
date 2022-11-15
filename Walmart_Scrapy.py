@@ -93,8 +93,8 @@ def process(num1, num2, table1):
                     sleep(3)
                     chrome.get(link)
                     n += 1
-                except BaseException:
-
+                except BaseException as e:
+                    print(e)
                     n = 10
 
             ele_list = chrome.find_element_by_id("__NEXT_DATA__")
