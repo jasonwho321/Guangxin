@@ -2,38 +2,32 @@ import csv
 from datetime import datetime
 import json
 from selenium import webdriver
-import pandas as pd
-from multiprocessing import Process, Manager
 from time import time, strftime, gmtime, sleep
 import requests
 import random
 from bs4 import BeautifulSoup
 
 
-# /props/pageProps/initialData/data/product/availabilityStatus
-# props.pageProps.initialData.data.product.priceInfo.currentPrice.price
-# props.pageProps.initialData.data.product.variantsMap.3U2P1HKVUSGX.priceInfo.currentPrice.price
-# props.pageProps.initialData.data.product.variantProductIdMap
-# props.pageProps.initialData.data.product.variantCriteria[0].variantList[{}].name
-link_list_US=['http://www.walmart.com/ip/HouseInBox-Computer-Desk-Study-Writing-Table-Workstation-Organizer-with-Shelves-for-Home-Office-Use/262695439',
-'http://www.walmart.com/ip/HouseInBox-Metal-Platform-Bed-Frame-Gold-Daybed-Metal-Platform-Bed/381052787',
-'http://www.walmart.com/ip/HouseInBox-Industrial-29-Inch-Bar-Stools-Set-of-2-Home-Bar-Furniture-Stools-Farbic-Seat-and-Back-with-Metal-Legs-for-Kitchen-Dining-Room-Yellow/520464319',
-'http://www.walmart.com/ip/HouseInBox-29-Comfortable-Counter-Height-Bar-Stools-Set-of-2-360-Degree-Swivel-Seat-Height-Back-Bar-Stool/1289632667',
-'http://www.walmart.com/ip/HouseInBox-Mid-Century-25-Counter-Height-Metal-Bar-Stools-Set-of-2/771125348',
-'http://www.walmart.com/ip/HouseInBox-Home-Office-Computer-Desk-Chair-Velvet-Upholstered-Armchair-Open-Back-Swivel-Work-Arm-Chair-Blue/676448348',
-'http://www.walmart.com/ip/HouseInBox-Velvet-Accent-Chair-for-Living-Room-Light-Green-Wing-Back-Armchair-Tufted-Back-Upholstery-Living-Room-Chairs/509331187',
-'http://www.walmart.com/ip/HouseInBox-Outdoor-Dining-Table-Set-for-4-Metal-Solid-Wood-Kitchen-Dining-Room-Sets-Restaurant-Table-and-Chairs-Set-Outdoor-Need-Under-Cover/1062943959']
-link_list_CA=['https://www.walmart.ca/en/ip/homycasa-brown-l-shape-desk-open-storage-mdf-wood-spacious-extra-storage-shelves-table-brown/PRD65SS591ODNJ7',
-'https://www.walmart.ca/en/ip/homycasa-computer-desk-with-rolling-convertible-shelf-walnut-walnut/6000203334780',
-'https://www.walmart.ca/en/ip/homycasa-computer-desk-teen-writing-desk-with-drawer-and-keyboard-tray-oakwhite-oakwhite/6000202560753',
-'https://www.walmart.ca/en/ip/homycasa-gilda-325-in-white-moderncontemporary-writing-desk-white/6000205673320',
-'https://www.walmart.ca/en/ip/office-chair-gray-lumbar-support-mesh-computer-desk-task-chair-gray/6000202491534',
-'https://www.walmart.ca/en/ip/office-chair-purple-lumbar-support-mesh-computer-desk-task-chair-purple/6000202491771',
-'https://www.walmart.ca/en/ip/office-chair-mint-green-lumbar-support-mesh-computer-desk-task-chair-green/6000202491904',
-'https://www.walmart.ca/en/ip/homycasa-fiyan-acrylic-30-in-black-fixed-height-bar-stool-set-of-2-black/6000205673948',
-'https://www.walmart.ca/en/ip/falette-green-tufted-velvet-arm-chair-green/6000202563262']
+link_list_US = ['http://www.walmart.com/ip/HouseInBox-Computer-Desk-Study-Writing-Table-Workstation-Organizer-with-Shelves-for-Home-Office-Use/262695439',
+                'http://www.walmart.com/ip/HouseInBox-Metal-Platform-Bed-Frame-Gold-Daybed-Metal-Platform-Bed/381052787',
+                'http://www.walmart.com/ip/HouseInBox-Industrial-29-Inch-Bar-Stools-Set-of-2-Home-Bar-Furniture-Stools-Farbic-Seat-and-Back-with-Metal-Legs-for-Kitchen-Dining-Room-Yellow/520464319',
+                'http://www.walmart.com/ip/HouseInBox-29-Comfortable-Counter-Height-Bar-Stools-Set-of-2-360-Degree-Swivel-Seat-Height-Back-Bar-Stool/1289632667',
+                'http://www.walmart.com/ip/HouseInBox-Mid-Century-25-Counter-Height-Metal-Bar-Stools-Set-of-2/771125348',
+                'http://www.walmart.com/ip/HouseInBox-Home-Office-Computer-Desk-Chair-Velvet-Upholstered-Armchair-Open-Back-Swivel-Work-Arm-Chair-Blue/676448348',
+                'http://www.walmart.com/ip/HouseInBox-Velvet-Accent-Chair-for-Living-Room-Light-Green-Wing-Back-Armchair-Tufted-Back-Upholstery-Living-Room-Chairs/509331187',
+                'http://www.walmart.com/ip/HouseInBox-Outdoor-Dining-Table-Set-for-4-Metal-Solid-Wood-Kitchen-Dining-Room-Sets-Restaurant-Table-and-Chairs-Set-Outdoor-Need-Under-Cover/1062943959']
+link_list_CA = ['https://www.walmart.ca/en/ip/homycasa-brown-l-shape-desk-open-storage-mdf-wood-spacious-extra-storage-shelves-table-brown/PRD65SS591ODNJ7',
+                'https://www.walmart.ca/en/ip/homycasa-computer-desk-with-rolling-convertible-shelf-walnut-walnut/6000203334780',
+                'https://www.walmart.ca/en/ip/homycasa-computer-desk-teen-writing-desk-with-drawer-and-keyboard-tray-oakwhite-oakwhite/6000202560753',
+                'https://www.walmart.ca/en/ip/homycasa-gilda-325-in-white-moderncontemporary-writing-desk-white/6000205673320',
+                'https://www.walmart.ca/en/ip/office-chair-gray-lumbar-support-mesh-computer-desk-task-chair-gray/6000202491534',
+                'https://www.walmart.ca/en/ip/office-chair-purple-lumbar-support-mesh-computer-desk-task-chair-purple/6000202491771',
+                'https://www.walmart.ca/en/ip/office-chair-mint-green-lumbar-support-mesh-computer-desk-task-chair-green/6000202491904',
+                'https://www.walmart.ca/en/ip/homycasa-fiyan-acrylic-30-in-black-fixed-height-bar-stool-set-of-2-black/6000205673948',
+                'https://www.walmart.ca/en/ip/falette-green-tufted-velvet-arm-chair-green/6000202563262']
 csv_path_CA = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_list_CA.csv'
 csv_path_US = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\SKU_list_US.csv'
+
 
 def get_cookies(country):
     link_list = link_list_US if country == "US" else link_list_CA
@@ -47,12 +41,13 @@ def get_cookies(country):
     i = 1
     while i < 20:
         sleep(60)
-        new_tab(chrome, link=random.choice(link_list),i=i)
-        if chrome.current_url.startswith('https://www.walmart.com/blocked?') or chrome.current_url.startswith('https://www.walmart.ca/blocked?'):
+        new_tab(chrome, link=random.choice(link_list), i=i)
+        if chrome.current_url.startswith(
+                'https://www.walmart.com/blocked?') or chrome.current_url.startswith('https://www.walmart.ca/blocked?'):
             new_tab(chrome, link=random.choice(link_list), i=i)
-            i+=1
+            i += 1
         else:
-            i=20
+            i = 20
     # 就当成js语句吧
     sleep(3)
     cookies = chrome.get_cookies()
@@ -63,12 +58,16 @@ def get_cookies(country):
     final_cookies = final_cookies[:-2]
     chrome.quit()
     return final_cookies
-def new_tab(chrome,link,i):
+
+
+def new_tab(chrome, link, i):
     newTab = 'window.open("{}","_blank");'.format(link)
     chrome.execute_script(newTab)
     windows = chrome.window_handles
     chrome.switch_to.window(windows[i])
     chrome.implicitly_wait(20)
+
+
 def get_info(link, table1, soup):
     try:
         product = soup['props']['pageProps']['initialData']['data']['product']
@@ -136,7 +135,7 @@ def get_ua():
     return ua
 
 
-def process(table1,country):
+def process(table1, country):
     final_cookies = get_cookies(country=country)
     csv_path = csv_path_US if country == "US" else csv_path_CA
     data = read_src(csv_path)
@@ -149,7 +148,7 @@ def process(table1,country):
     while n < len(data):
         print("总体进度：{}/{}".format(str(n), str(len(data))))
         link = data[n][0]
-        sp = requests.session().get(link,headers=headers)
+        sp = requests.session().get(link, headers=headers)
         if sp.url.startswith('https://www.walmart.com/blocked?') or sp.url.startswith(
                 'https://www.walmart.ca/blocked?'):
             headers = {
@@ -166,13 +165,14 @@ def process(table1,country):
             table1 = get_info(link, table1, soup)
         except BaseException:
             table1.append([link, '-', '-', '-'])
-        n+=1
+        n += 1
     return table1
+
 
 def main(country):
     date = datetime.today().strftime("%Y%m%d")
     table1 = []
-    process(table1,country)
+    process(table1, country)
     csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Walmart爬虫\Walmart_PriceOutput_' + \
         date + '_' + country + '.csv'
     table1.insert(0, ['Link', 'color', 'price', 'stock'])
@@ -189,8 +189,10 @@ if __name__ == '__main__':
     main('US')
     e = time()
     print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
-    # mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
     s = time()
     main('CA')
     e = time()
     print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    # mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
+    # mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
+

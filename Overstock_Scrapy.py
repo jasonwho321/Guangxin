@@ -5,6 +5,8 @@ import pandas as pd
 from datetime import datetime
 from selenium import webdriver
 from time import time, strftime, gmtime
+
+
 def get_info(link, table1, soup):
     try:
         options = soup['props']['pageProps']['product']['options']
@@ -13,7 +15,8 @@ def get_info(link, table1, soup):
             subsku = option['subSku']
             decription = option['decription']
             qtyonhand = option['qtyOnHand']
-            output = [link, subsku, '-'.join([link[-8:], subsku]), decription, price, qtyonhand]
+            output = [
+                link, subsku, '-'.join([link[-8:], subsku]), decription, price, qtyonhand]
             # print(output)
             table1.append(output)
     except BaseException as e:
@@ -45,7 +48,7 @@ def mapping_sku(csv_priceout, csv_map):
     df_map = dict(zip(df_map['OSSKU'], df_map['Partner SKU']))
     df_price['OSSKU'] = df_price['OSSKU'].str.strip()
     df_price['PartNumber'] = df_price['OSSKU'].map(df_map, na_action=None)
-    df_price.to_csv(csv_priceout,index=False)
+    df_price.to_csv(csv_priceout, index=False)
 
 
 def process(num1, num2, table1):
@@ -67,8 +70,9 @@ def process(num1, num2, table1):
             ele_list = chrome.find_element_by_id("__NEXT_DATA__")
             soup = json.loads(ele_list.get_attribute('innerHTML'))
             table1 = get_info(link, table1, soup)
-        except:
-            table1.append([link, '-', '-'.join([link[-8:], '000-000']),'-', '-', '-'])
+        except BaseException:
+            table1.append(
+                [link, '-', '-'.join([link[-8:], '000-000']), '-', '-', '-'])
 
 
 def main():
@@ -105,7 +109,9 @@ def main():
     with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
         writer = csv.writer(f, dialect='excel')
         writer.writerows(table1)
-    mapping_sku(csv_path1, r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
+    mapping_sku(
+        csv_path1,
+        r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
 
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ import random
 from selenium import webdriver
 from time import sleep, time, strftime, gmtime
 from multiprocessing import Process, Manager
+from functools import reduce
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
 referer_CA = 'https://www.wayfair.ca/v/global_help/global_help_app/index'
@@ -370,7 +371,8 @@ def process(num1, num2, table1, country):
     data = read_src(csv_path)
     cookie = get_cookies(country)
     for sku in data[num1:num2]:
-        print("总体进度：{}/{}".format(data.index(sku), str(num2 if num2 is not None else len(data))))
+        print("总体进度：{}/{}".format(data.index(sku),
+                                  str(num2 if num2 is not None else len(data))))
         proxy = '221.131.141.243:9091'
         # sp,proxy,sp1 = not_bot1('https://www.wayfair.com/keyword.php?keyword=' +
         #              sku[0],)
