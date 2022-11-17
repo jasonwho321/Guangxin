@@ -4,8 +4,6 @@ import json
 from selenium import webdriver
 import pandas as pd
 from multiprocessing import Process, Manager
-
-from selenium.webdriver import ActionChains
 from time import time, strftime, gmtime, sleep
 import requests
 
