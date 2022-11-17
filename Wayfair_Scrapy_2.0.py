@@ -149,12 +149,12 @@ def get_all_combine(categories):
     new_all_list = []
     for combination in all_list:
         new_all_list.append(combination.split('|'))
-    print('已获取 {} 个类别，共计 {} 个选择'.format(len(categories), len(cate_dict)))
+    # print('已获取 {} 个类别，共计 {} 个选择'.format(len(categories), len(cate_dict)))
     return new_all_list, cate_dict
 
 
 def not_bot1(new_url, proxy, cookie, country):
-    print(new_url)
+    # print(new_url)
     referer = referer_US if country == "US" else referer_CA
     headers = {
         'cookie': cookie,
@@ -184,7 +184,7 @@ def not_bot1(new_url, proxy, cookie, country):
             e = e[0]
             result = 1
         except BaseException:
-            print('正在绕过机器人检测')
+            # print('正在绕过机器人检测')
             cookie = get_cookies(country)
             headers = {
                 'cookie': cookie,
@@ -209,7 +209,7 @@ def not_bot1(new_url, proxy, cookie, country):
 
 
 def not_bot2(new_url, proxy, cookie, country):
-    print(new_url)
+    # print(new_url)
     referer = referer_US if country == "US" else referer_CA
     headers = {
         'cookie': cookie,
@@ -239,7 +239,7 @@ def not_bot2(new_url, proxy, cookie, country):
             e = e[0]
             result = 1
         except BaseException:
-            print('正在绕过机器人检测')
+            # print('正在绕过机器人检测')
 
             cookie = get_cookies(country)
             headers = {
@@ -286,7 +286,7 @@ def get_info(sku, c_sku, new_url, proxy, cookie, country):
         is_out_of_stock = 'out_of_stock'
 
     output = [sku[0], c_sku, title, is_out_of_stock, salePrice, rating, review]
-    print('已获取 {} 的全部信息\n{}'.format(c_sku, output))
+    # print('已获取 {} 的全部信息\n{}'.format(c_sku, output))
     return output, proxy, cookie
     # return [sku[0], c_sku, link_ava, waymore_num, is_out_of_stock,
     #         pic_num, len(link_list)] + link_list
@@ -349,7 +349,7 @@ def get_all_sku(sku, table1, proxy, cookie, country):
                 sku, sku[0], new_url, proxy, cookie, country)
             table1.append(list1)
     except Exception as e:
-        print(e)
+        # print(e)
         c_sku = '-'
         is_out_of_stock = '-'
         title = '-'
@@ -361,7 +361,7 @@ def get_all_sku(sku, table1, proxy, cookie, country):
             is_out_of_stock,
             salePrice, '-', '-']
         table1.append(list1)
-    print('已获取{}所有sku信息'.format(sku[0]))
+    # print('已获取{}所有sku信息'.format(sku[0]))
     return table1, proxy, cookie
 
 
@@ -370,7 +370,7 @@ def process(num1, num2, table1, country):
     data = read_src(csv_path)
     cookie = get_cookies(country)
     for sku in data[num1:num2]:
-        print("总体进度：{}/{}".format(data.index(sku), str(num2)))
+        print("总体进度：{}/{}".format(data.index(sku), str(num2 if num2 is not None else len(data))))
         proxy = '221.131.141.243:9091'
         # sp,proxy,sp1 = not_bot1('https://www.wayfair.com/keyword.php?keyword=' +
         #              sku[0],)

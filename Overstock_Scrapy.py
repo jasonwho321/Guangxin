@@ -14,10 +14,10 @@ def get_info(link, table1, soup):
             decription = option['decription']
             qtyonhand = option['qtyOnHand']
             output = [link, subsku, '-'.join([link[-8:], subsku]), decription, price, qtyonhand]
-            print(output)
+            # print(output)
             table1.append(output)
     except BaseException as e:
-        print(e)
+        # print(e)
         pass
     return table1
 
