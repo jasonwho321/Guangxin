@@ -403,13 +403,13 @@ def main(country="US"):
     process_list = []
     manager = Manager()
     table1 = manager.list()  # 也可以使用列表dict
-    p1 = Process(target=process, args=(None, len1, table1, country))
+    p1 = Process(target=process, args=(0, len1, table1, country))
     p1.start()
     p2 = Process(target=process, args=(len1, len2, table1, country))
     p2.start()
     p3 = Process(target=process, args=(len2, len3, table1, country))
     p3.start()
-    p4 = Process(target=process, args=(len3, None, table1, country))
+    p4 = Process(target=process, args=(len3, lenth, table1, country))
     p4.start()
 
     process_list.append(p1)
