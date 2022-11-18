@@ -1,3 +1,5 @@
+import sys
+
 import csv
 from datetime import datetime
 import requests
@@ -6,9 +8,9 @@ import json
 import random
 from selenium import webdriver
 from time import sleep, time, strftime, gmtime
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Pool,cpu_count
 from tqdm import tqdm
-from functools import reduce
+from functools import reduce, partial
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
 referer_CA = 'https://www.wayfair.ca/v/global_help/global_help_app/index'
@@ -182,7 +184,6 @@ def not_bot1(new_url, proxy, cookie, country):
     while result == 0:
         sleep(3)
         try:
-
             e = soup.find_all('svg', class_="nav-StoreLogo-svg")
             e = e[0]
             result = 1
@@ -367,16 +368,28 @@ def get_all_sku(sku, table1, proxy, cookie, country):
     # print('已获取{}所有sku信息'.format(sku[0]))
     return table1, proxy, cookie
 
+def process(sku, table1,dict1,lock):
+    num = str(random.choice(range(1,7)))
+    table1, proxy,cookie = get_all_sku(
+        sku, table1, dict1['proxy'+num], dict1['cookie'+num], dict1['country'])
+    if cookie != dict1['cookie'+num]:
+        lock.acquire()
+        dict1['cookie' + num] = cookie
+        lock.release()
+    if proxy != dict1['proxy'+num]:
+        lock.acquire()
+        dict1['proxy' + num] = cookie
+        lock.release()
 
-def process(num1, num2, table1, country):
-    csv_path = csv_path_US if country == "US" else csv_path_CA
-    data = read_src(csv_path)
-    cookie = get_cookies(country)
-    for i in tqdm(range(1, num2 - num1)):
-        sku = data[num1:num2][i - 1]
-        proxy = '221.131.141.243:9091'
-        table1, proxy, cookie = get_all_sku(
-            sku, table1, proxy, cookie, country)
+# def process1(num1, num2, table1, country):
+#     csv_path = csv_path_US if country == "US" else csv_path_CA
+#     data = read_src(csv_path)
+#     cookie = get_cookies(country)
+#     for i in tqdm(range(1, num2 - num1)):
+#         sku = data[num1:num2][i - 1]
+#         proxy = '221.131.141.243:9091'
+#         table1, proxy, cookie = get_all_sku(
+#             sku, table1, proxy, cookie, country)
     # for sku in data[num1:num2]:
     #     print("总体进度：{}/{}".format(data.index(sku),
     #                               str(num2 if num2 is not None else len(data))))
@@ -391,6 +404,9 @@ def process(num1, num2, table1, country):
 
 
 def main(country="US"):
+    pool_num = cpu_count()
+    cookie = get_cookies(country)
+    proxy = '221.131.141.243:9091'
     csv_path = csv_path_US if country == "US" else csv_path_CA
     data = read_src(csv_path)
     lenth = len(data)
@@ -402,23 +418,37 @@ def main(country="US"):
 
     process_list = []
     manager = Manager()
-    table1 = manager.list()  # 也可以使用列表dict
-    p1 = Process(target=process, args=(None, len1, table1, country))
-    p1.start()
-    p2 = Process(target=process, args=(len1, len2, table1, country))
-    p2.start()
-    p3 = Process(target=process, args=(len2, len3, table1, country))
-    p3.start()
-    p4 = Process(target=process, args=(len3, None, table1, country))
-    p4.start()
+    lock = manager.Lock()
+    dict1 = manager.dict()
+    table1 = manager.list()
 
-    process_list.append(p1)
-    process_list.append(p2)
-    process_list.append(p3)
-    process_list.append(p4)
+    for i in range(1,pool_num+1):
+        dict1['cookie' + str(i)]=cookie
+        dict1['proxy' + str(i)] = proxy
+        dict1['country'] = country
 
-    for t in process_list:
-        t.join()
+    with Pool(pool_num) as workers:
+        with tqdm(total=lenth,file=sys.stdout) as pbar:
+            for sku in data:
+                workers.starmap_async(process,(sku[0],table1,dict1,lock,))
+                pbar.update()
+
+    # p1 = Process(target=process, args=(0, len1, table1, country))
+    # p1.start()
+    # p2 = Process(target=process, args=(len1, len2, table1, country))
+    # p2.start()
+    # p3 = Process(target=process, args=(len2, len3, table1, country))
+    # p3.start()
+    # p4 = Process(target=process, args=(len3, lenth, table1, country))
+    # p4.start()
+    #
+    # process_list.append(p1)
+    # process_list.append(p2)
+    # process_list.append(p3)
+    # process_list.append(p4)
+    #
+    # for t in process_list:
+    #     t.join()
 
     csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
         time + '_' + country + '.csv'
