@@ -5,8 +5,8 @@ import pandas as pd
 from datetime import datetime
 from selenium import webdriver
 from time import time, strftime, gmtime
-
-
+from tqdm import tqdm
+from Wayfair_Scrapy import read_src
 def get_info(link, table1, soup):
     try:
         options = soup['props']['pageProps']['product']['options']
@@ -25,19 +25,7 @@ def get_info(link, table1, soup):
     return table1
 
 
-def read_src(csv_path):
-    """
-    用于读取指定csv文件的第一列，返回列表的元素为列表形式，已去除表头
-    :param csv_path:文件地址
-    :return:返回列表
-    """
-    data = []
-    with open(csv_path, 'r', encoding='gbk') as f:
-        reader = csv.reader(f, dialect='excel')
-        for row in reader:
-            data.append(row)
-    data.pop(0)
-    return data
+
 
 
 def mapping_sku(csv_priceout, csv_map):
@@ -61,9 +49,9 @@ def process(num1, num2, table1):
     chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
     csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_list.csv'
     data = read_src(csv_path)
-    for link in data[num1:num2]:
+    for i in tqdm(range(1, num2-num1)):
+        link = data[num1:num2][i-1]
         chrome.implicitly_wait(20)
-        print("总体进度：{}/{}".format(data.index(link), str(num2)))
         link = link[0]
         try:
             chrome.get(link)
@@ -73,6 +61,18 @@ def process(num1, num2, table1):
         except BaseException:
             table1.append(
                 [link, '-', '-'.join([link[-8:], '000-000']), '-', '-', '-'])
+    # for link in data[num1:num2]:
+    #     chrome.implicitly_wait(20)
+    #     print("总体进度：{}/{}".format(data.index(link), str(num2)))
+    #     link = link[0]
+    #     try:
+    #         chrome.get(link)
+    #         ele_list = chrome.find_element_by_id("__NEXT_DATA__")
+    #         soup = json.loads(ele_list.get_attribute('innerHTML'))
+    #         table1 = get_info(link, table1, soup)
+    #     except BaseException:
+    #         table1.append(
+    #             [link, '-', '-'.join([link[-8:], '000-000']), '-', '-', '-'])
 
 
 def main():

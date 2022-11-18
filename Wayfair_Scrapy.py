@@ -7,7 +7,7 @@ import random
 from selenium import webdriver
 from time import sleep, time, strftime, gmtime
 from multiprocessing import Process, Manager
-from functools import reduce
+from tqdm import tqdm
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
 referer_CA = 'https://www.wayfair.ca/v/global_help/global_help_app/index'
@@ -33,6 +33,7 @@ link_list_CA = ['https://www.wayfair.ca/furniture/pdp/ivy-bronx-paradise-pillow-
                 'https://www.wayfair.ca/furniture/sb0/office-chair-accessories-c1783512.html']
 csv_path_CA = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\SKU_list_CA.csv'
 csv_path_US = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\SKU_list_US.csv'
+ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.42'
 
 
 def get_cookies(country):
@@ -89,8 +90,7 @@ def get_ua():
     ua = ' '.join(['Mozilla/5.0', random.choice(os_type), 'AppleWebKit/537.36',
                    '(KHTML, like Gecko)', chrome_version, 'Safari/537.36']
                   )
-    return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.42'
-
+    return ua
 
 def get_proxy():
     # return {'proxy': '221.131.141.243:9091'}
@@ -159,7 +159,7 @@ def not_bot1(new_url, proxy, cookie, country):
     referer = referer_US if country == "US" else referer_CA
     headers = {
         'cookie': cookie,
-        'user-agent': get_ua(),
+        'user-agent': ua,
         'referer': referer,
         'upgrade-insecure-requests': '1'
     }
@@ -189,7 +189,7 @@ def not_bot1(new_url, proxy, cookie, country):
             cookie = get_cookies(country)
             headers = {
                 'cookie': cookie,
-                'user-agent': get_ua(),
+                'user-agent': ua,
                 'referer': referer,
                 'upgrade-insecure-requests': '1'
             }
@@ -214,7 +214,7 @@ def not_bot2(new_url, proxy, cookie, country):
     referer = referer_US if country == "US" else referer_CA
     headers = {
         'cookie': cookie,
-        'user-agent': get_ua(),
+        'user-agent': ua,
         'referer': referer,
         'upgrade-insecure-requests': '1'
     }
@@ -245,7 +245,7 @@ def not_bot2(new_url, proxy, cookie, country):
             cookie = get_cookies(country)
             headers = {
                 'cookie': cookie,
-                'user-agent': get_ua(),
+                'user-agent': ua,
                 'referer': referer,
                 'upgrade-insecure-requests': '1'
             }
@@ -370,18 +370,20 @@ def process(num1, num2, table1, country):
     csv_path = csv_path_US if country == "US" else csv_path_CA
     data = read_src(csv_path)
     cookie = get_cookies(country)
-    for sku in data[num1:num2]:
-        print("总体进度：{}/{}".format(data.index(sku),
-                                  str(num2 if num2 is not None else len(data))))
+    for i in tqdm(range(1, num2-num1)):
+        sku = data[num1:num2][i-1]
         proxy = '221.131.141.243:9091'
+        table1, proxy, cookie = get_all_sku(
+            sku, table1, proxy, cookie, country)
+    # for sku in data[num1:num2]:
+    #     print("总体进度：{}/{}".format(data.index(sku),
+    #                               str(num2 if num2 is not None else len(data))))
         # sp,proxy,sp1 = not_bot1('https://www.wayfair.com/keyword.php?keyword=' +
         #              sku[0],)
         # list_waymore = sp.find_all_by_xpath(
         #     '/html/body/div//section[@class="WaymoreModule"]')
         # waymore_num = len(list_waymore)
         # waymore_num='-'
-        table1, proxy, cookie = get_all_sku(
-            sku, table1, proxy, cookie, country)
 
     return table1
 
