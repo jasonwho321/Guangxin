@@ -8,7 +8,7 @@ import requests
 import random
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-from Wayfair_Scrapy import read_src,get_ua
+from Wayfair_Scrapy import read_src, get_ua
 
 link_list_US = ['http://www.walmart.com/ip/HouseInBox-Computer-Desk-Study-Writing-Table-Workstation-Organizer-with-Shelves-for-Home-Office-Use/262695439',
                 'http://www.walmart.com/ip/HouseInBox-Metal-Platform-Bed-Frame-Gold-Daybed-Metal-Platform-Bed/381052787',
@@ -99,7 +99,6 @@ def get_info(link, table1, soup):
     return table1
 
 
-
 # def mapping_sku(csv_priceout, csv_map):
 #     df_price = pd.read_csv(csv_priceout)
 #     df_map = pd.read_csv(csv_map)
@@ -140,7 +139,7 @@ def process(table1, country):
         try:
             content = sp.content
             soup = BeautifulSoup(content, "html.parser")
-            text = soup.find('script', attrs={"id":"__NEXT_DATA__"}).string
+            text = soup.find('script', attrs={"id": "__NEXT_DATA__"}).string
             soup = json.loads(text)
             table1 = get_info(link, table1, soup)
         except BaseException as e:
@@ -150,7 +149,6 @@ def process(table1, country):
         pbar.update(1)
     pbar.close()
     return table1
-
 
 
 def main(country):
@@ -173,10 +171,9 @@ if __name__ == '__main__':
     main('US')
     e = time()
     print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
-    s = time()
-    main('CA')
-    e = time()
-    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    # s = time()
+    # main('CA')
+    # e = time()
+    # print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
     # mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
     # mapping_sku(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\Overstock_PriceOutput_20221110.csv', r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_Mapping.csv')
-

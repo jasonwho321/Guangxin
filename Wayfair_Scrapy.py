@@ -8,6 +8,7 @@ from selenium import webdriver
 from time import sleep, time, strftime, gmtime
 from multiprocessing import Process, Manager
 from tqdm import tqdm
+from functools import reduce
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
 referer_CA = 'https://www.wayfair.ca/v/global_help/global_help_app/index'
@@ -91,6 +92,7 @@ def get_ua():
                    '(KHTML, like Gecko)', chrome_version, 'Safari/537.36']
                   )
     return ua
+
 
 def get_proxy():
     # return {'proxy': '221.131.141.243:9091'}
@@ -370,8 +372,8 @@ def process(num1, num2, table1, country):
     csv_path = csv_path_US if country == "US" else csv_path_CA
     data = read_src(csv_path)
     cookie = get_cookies(country)
-    for i in tqdm(range(1, num2-num1)):
-        sku = data[num1:num2][i-1]
+    for i in tqdm(range(1, num2 - num1)):
+        sku = data[num1:num2][i - 1]
         proxy = '221.131.141.243:9091'
         table1, proxy, cookie = get_all_sku(
             sku, table1, proxy, cookie, country)

@@ -7,6 +7,8 @@ from selenium import webdriver
 from time import time, strftime, gmtime
 from tqdm import tqdm
 from Wayfair_Scrapy import read_src
+
+
 def get_info(link, table1, soup):
     try:
         options = soup['props']['pageProps']['product']['options']
@@ -23,9 +25,6 @@ def get_info(link, table1, soup):
         # print(e)
         pass
     return table1
-
-
-
 
 
 def mapping_sku(csv_priceout, csv_map):
@@ -49,8 +48,8 @@ def process(num1, num2, table1):
     chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
     csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\OS爬虫\SKU_list.csv'
     data = read_src(csv_path)
-    for i in tqdm(range(1, num2-num1)):
-        link = data[num1:num2][i-1]
+    for i in tqdm(range(1, num2 - num1)):
+        link = data[num1:num2][i - 1]
         chrome.implicitly_wait(20)
         link = link[0]
         try:
