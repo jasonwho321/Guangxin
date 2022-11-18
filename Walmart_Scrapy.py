@@ -1,3 +1,4 @@
+# -- coding: utf-8 --**
 import csv
 from datetime import datetime
 import json
@@ -35,20 +36,21 @@ def get_cookies(country):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_experimental_option(
         'excludeSwitches', ['enable-automation'])
+    chrome_options.add_argument("--disable-blink-features")
     chrome_options.add_argument(
         "--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option('useAutomationExtension', False)
     chrome = webdriver.Chrome(r"D:\chromedriver.exe", options=chrome_options)
     i = 1
     while i < 20:
-        sleep(60)
         new_tab(chrome, link=random.choice(link_list), i=i)
         if chrome.current_url.startswith(
                 'https://www.walmart.com/blocked?') or chrome.current_url.startswith('https://www.walmart.ca/blocked?'):
-            new_tab(chrome, link=random.choice(link_list), i=i)
             i += 1
+            sleep(60)
+            pass
         else:
-            i = 20
+            break
     # 就当成js语句吧
     sleep(3)
     cookies = chrome.get_cookies()
@@ -70,6 +72,7 @@ def new_tab(chrome, link, i):
 
 
 def get_info(link, table1, soup):
+
     try:
         product = soup['props']['pageProps']['initialData']['data']['product']
         if product['variantProductIdMap']:
@@ -125,6 +128,7 @@ def process(table1, country):
     while n < len(data):
         link = data[n][0]
         sp = requests.session().get(link, headers=headers)
+        print(sp.url)
         if sp.url.startswith('https://www.walmart.com/blocked?') or sp.url.startswith(
                 'https://www.walmart.ca/blocked?'):
             headers = {
@@ -136,10 +140,11 @@ def process(table1, country):
         try:
             content = sp.content
             soup = BeautifulSoup(content, "html.parser")
-            text = soup.find('script', {'id': '__NEXT_DATA__'}).get_text()
+            text = soup.find('script', attrs={"id":"__NEXT_DATA__"}).string
             soup = json.loads(text)
             table1 = get_info(link, table1, soup)
-        except BaseException:
+        except BaseException as e:
+            print(e)
             table1.append([link, '-', '-', '-'])
         n += 1
         pbar.update(1)
