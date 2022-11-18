@@ -381,142 +381,41 @@ def process(sku, table1,dict1,lock):
         dict1['proxy' + num] = cookie
         lock.release()
 
-# def process1(num1, num2, table1, country):
-#     csv_path = csv_path_US if country == "US" else csv_path_CA
-#     data = read_src(csv_path)
-#     cookie = get_cookies(country)
-#     for i in tqdm(range(1, num2 - num1)):
-#         sku = data[num1:num2][i - 1]
-#         proxy = '221.131.141.243:9091'
-#         table1, proxy, cookie = get_all_sku(
-#             sku, table1, proxy, cookie, country)
-    # for sku in data[num1:num2]:
-    #     print("总体进度：{}/{}".format(data.index(sku),
-    #                               str(num2 if num2 is not None else len(data))))
-        # sp,proxy,sp1 = not_bot1('https://www.wayfair.com/keyword.php?keyword=' +
-        #              sku[0],)
-        # list_waymore = sp.find_all_by_xpath(
-        #     '/html/body/div//section[@class="WaymoreModule"]')
-        # waymore_num = len(list_waymore)
-        # waymore_num='-'
-
-    return table1
-
-
-def main(country="US"):
-    pool_num = cpu_count()
-    cookie = get_cookies(country)
-    proxy = '221.131.141.243:9091'
-    csv_path = csv_path_US if country == "US" else csv_path_CA
-    data = read_src(csv_path)
-    lenth = len(data)
-    len1 = round(lenth / 4)
-    len2 = round(lenth / 2)
-    len3 = round(lenth * 3 / 4)
-
-    time = datetime.today().strftime("%Y%m%d")
-
-    process_list = []
-    manager = Manager()
-    lock = manager.Lock()
-    dict1 = manager.dict()
-    table1 = manager.list()
-
-    for i in range(1,pool_num+1):
-        dict1['cookie' + str(i)]=cookie
-        dict1['proxy' + str(i)] = proxy
-        dict1['country'] = country
-
-    with Pool(pool_num) as workers:
-        with tqdm(total=lenth,file=sys.stdout) as pbar:
-            for sku in data:
-                workers.starmap_async(process,(sku[0],table1,dict1,lock,))
-                pbar.update()
-
-    # p1 = Process(target=process, args=(0, len1, table1, country))
-    # p1.start()
-    # p2 = Process(target=process, args=(len1, len2, table1, country))
-    # p2.start()
-    # p3 = Process(target=process, args=(len2, len3, table1, country))
-    # p3.start()
-    # p4 = Process(target=process, args=(len3, lenth, table1, country))
-    # p4.start()
-    #
-    # process_list.append(p1)
-    # process_list.append(p2)
-    # process_list.append(p3)
-    # process_list.append(p4)
-    #
-    # for t in process_list:
-    #     t.join()
-
-    csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
-        time + '_' + country + '.csv'
-    with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
-        writer = csv.writer(f, dialect='excel')
-        writer.writerows(table1)
-    pass
-
 
 if __name__ == '__main__':
-    # s = time()
-    # main(country="US")
-    # e = time()
-    # print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
-    #
-    # s = time()
-    # main(country="CA")
-    # e = time()
-    # print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
-    country = 'US'
-    pool_num = cpu_count()
-    cookie = get_cookies(country)
-    proxy = '221.131.141.243:9091'
-    csv_path = csv_path_US if country == "US" else csv_path_CA
-    data = read_src(csv_path)
-    lenth = len(data)
-    len1 = round(lenth / 4)
-    len2 = round(lenth / 2)
-    len3 = round(lenth * 3 / 4)
+    country_list = ["US","CA"]
+    for country in country_list:
+        s = time()
 
-    time = datetime.today().strftime("%Y%m%d")
+        cookie = get_cookies(country)
+        proxy = '221.131.141.243:9091'
+        csv_path = csv_path_US if country == "US" else csv_path_CA
+        data = read_src(csv_path)
+        lenth = len(data)
+        date = datetime.today().strftime("%Y%m%d")
 
-    process_list = []
-    manager = Manager()
-    lock = manager.Lock()
-    dict1 = manager.dict()
-    table1 = manager.list()
+        manager = Manager()
+        lock = manager.Lock()
+        dict1 = manager.dict()
+        table1 = manager.list()
+        pool_num = cpu_count()
 
-    for i in range(1,pool_num+1):
-        dict1['cookie' + str(i)]=cookie
-        dict1['proxy' + str(i)] = proxy
-        dict1['country'] = country
+        for i in range(1,pool_num+1):
+            dict1['cookie' + str(i)]=cookie
+            dict1['proxy' + str(i)] = proxy
+            dict1['country'] = country
+        pbar = tqdm(total=lenth)
+        update = lambda *args: pbar.update(1)
+        workers = Pool(pool_num)
+        for sku in data:
+            workers.apply_async(process, (sku,table1,dict1,lock,), callback=update)
+        workers.close()
+        workers.join()
 
-    with Pool(pool_num) as workers:
-        with tqdm(total=lenth,file=sys.stdout) as pbar:
-            for sku in data:
-                workers.starmap_async(process,(sku[0],table1,dict1,lock,))
-                pbar.update()
-
-    # p1 = Process(target=process, args=(0, len1, table1, country))
-    # p1.start()
-    # p2 = Process(target=process, args=(len1, len2, table1, country))
-    # p2.start()
-    # p3 = Process(target=process, args=(len2, len3, table1, country))
-    # p3.start()
-    # p4 = Process(target=process, args=(len3, lenth, table1, country))
-    # p4.start()
-    #
-    # process_list.append(p1)
-    # process_list.append(p2)
-    # process_list.append(p3)
-    # process_list.append(p4)
-    #
-    # for t in process_list:
-    #     t.join()
-
-    csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
-        time + '_' + country + '.csv'
-    with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
-        writer = csv.writer(f, dialect='excel')
-        writer.writerows(table1)
+        csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
+            date + '_' + country + '.csv'
+        with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
+            writer = csv.writer(f, dialect='excel')
+            writer.writerows(table1)
+        e = time()
+        print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
