@@ -155,7 +155,7 @@ def not_bot(new_url, cookie_pool, country, lock):
     cookie = random.choice(cookie_pool)
     proxy = get_proxy().get("proxy")
     headers = {
-        'cookie': random.choice(cookie_pool),
+        'cookie': cookie,
         'user-agent': ua,
         'referer': referer,
         'upgrade-insecure-requests': '1'
@@ -206,7 +206,6 @@ def not_bot(new_url, cookie_pool, country, lock):
 
             content = sp.content
             soup = BeautifulSoup(content, "html.parser")
-            result = 0
         else:
             break
     return soup, sp
@@ -321,14 +320,15 @@ if __name__ == '__main__':
         manager = Manager()
         lock = manager.Lock()
         dict1 = manager.dict()
+        dict1['country'] = country
         table1 = manager.list()
         pool_num = cpu_count()
-
         cookie_pool = manager.list()
-        for i in range(20):
+
+        for i in range(5):
             cookie_pool.append(get_cookies(country))
 
-        dict1['country'] = country
+
         pbar = tqdm(total=lenth)
         update = lambda *args: pbar.update(1)
         workers = Pool(pool_num)
