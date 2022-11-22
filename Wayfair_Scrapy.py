@@ -8,9 +8,9 @@ import json
 import random
 from selenium import webdriver
 from time import sleep, time, strftime, gmtime
-from multiprocessing import Process, Manager, Pool,cpu_count
+from multiprocessing import Manager, Pool, cpu_count
 from tqdm import tqdm
-from functools import reduce, partial
+
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
 referer_CA = 'https://www.wayfair.ca/v/global_help/global_help_app/index'
@@ -57,24 +57,18 @@ def get_cookies(country):
         windows = chrome.window_handles
         chrome.switch_to.window(windows[n])
         chrome.implicitly_wait(20)
-        try:
-            ele_list = chrome.find_elements_by_class_name("nav-StoreLogo-svg")
-            e = ele_list[0]
-            n = 10
-        except BaseException:
-            # chrome.delete_all_cookies()
-            # chrome.close()
+        if chrome.current_url.startswith(
+                'https://www.wayfair.com/v/captcha/show?goto') or chrome.current_url.startswith('https://www.wayfair.ca/v/captcha/show?goto'):
             n += 1
-    # 就当成js语句吧
+        else:
+            break
     sleep(3)
     cookies = chrome.get_cookies()
     final_cookies = ''
     for cookie in cookies:
-        # print(cookie['name'] + '=' + cookie['value'] + '; ')
         item = cookie['name'] + '=' + cookie['value'] + '; '
         final_cookies = final_cookies + item
     final_cookies = final_cookies[:-2]
-
     chrome.quit()
     return final_cookies
 
@@ -97,7 +91,6 @@ def get_ua():
 
 
 def get_proxy():
-    # return {'proxy': '221.131.141.243:9091'}
     return requests.get("http://127.0.0.1:5010/get/").json()
 
 
@@ -154,15 +147,15 @@ def get_all_combine(categories):
     new_all_list = []
     for combination in all_list:
         new_all_list.append(combination.split('|'))
-    # print('已获取 {} 个类别，共计 {} 个选择'.format(len(categories), len(cate_dict)))
     return new_all_list, cate_dict
 
 
-def not_bot1(new_url, proxy, cookie, country):
-    # print(new_url)
+def not_bot(new_url, cookie_pool, country, lock):
     referer = referer_US if country == "US" else referer_CA
+    cookie = random.choice(cookie_pool)
+    proxy = get_proxy().get("proxy")
     headers = {
-        'cookie': cookie,
+        'cookie': random.choice(cookie_pool),
         'user-agent': ua,
         'referer': referer,
         'upgrade-insecure-requests': '1'
@@ -183,19 +176,24 @@ def not_bot1(new_url, proxy, cookie, country):
     result = 0
     while result == 0:
         sleep(3)
-        try:
-            e = soup.find_all('svg', class_="nav-StoreLogo-svg")
-            e = e[0]
-            result = 1
-        except BaseException:
-            # print('正在绕过机器人检测')
-            cookie = get_cookies(country)
+        if sp.url.startswith('https://www.wayfair.com/v/captcha/show?goto') or sp.url.startswith(
+                'https://www.wayfair.ca/v/captcha/show?goto'):
+            lock.acquire()
+            cookie_pool.remove(cookie)
+            delete_proxy(proxy)
+            lock.release()
+            if cookie_pool:
+                cookie = random.choice(cookie_pool)
+            else:
+                cookie = get_cookies(country)
+                cookie_pool.append(cookie)
             headers = {
                 'cookie': cookie,
                 'user-agent': ua,
                 'referer': referer,
                 'upgrade-insecure-requests': '1'
             }
+
             proxy = get_proxy().get("proxy")
 
             sp = requests.session().get(new_url, proxies={"http": "http://{}".format(proxy)}, headers=headers,
@@ -209,68 +207,12 @@ def not_bot1(new_url, proxy, cookie, country):
             content = sp.content
             soup = BeautifulSoup(content, "html.parser")
             result = 0
-    return soup, proxy, sp, cookie
+        else:
+            break
+    return soup, sp
 
-
-def not_bot2(new_url, proxy, cookie, country):
-    # print(new_url)
-    referer = referer_US if country == "US" else referer_CA
-    headers = {
-        'cookie': cookie,
-        'user-agent': ua,
-        'referer': referer,
-        'upgrade-insecure-requests': '1'
-    }
-    sp = requests.session().get(
-        new_url,
-        proxies={
-            "http": "http://{}".format(proxy)},
-        headers=headers,
-        allow_redirects=False)
-    while sp.status_code == 301 or sp.status_code == 302:
-        url = sp.headers['Location']
-        sp = requests.session().get(url, proxies={"http": "http://{}".format(proxy)}, headers=headers,
-                                    allow_redirects=False)
-    content = sp.content
-    soup = BeautifulSoup(content, "html.parser")
-
-    result = 0
-    while result == 0:
-        sleep(3)
-        try:
-
-            e = soup.find_all('svg', class_="nav-StoreLogo-svg")
-            e = e[0]
-            result = 1
-        except BaseException:
-            # print('正在绕过机器人检测')
-
-            cookie = get_cookies(country)
-            headers = {
-                'cookie': cookie,
-                'user-agent': ua,
-                'referer': referer,
-                'upgrade-insecure-requests': '1'
-            }
-            proxy = get_proxy().get("proxy")
-            sp = requests.session().get(
-                new_url,
-                proxies={
-                    "http": "http://{}".format(proxy)},
-                headers=headers,
-                allow_redirects=False)
-            while sp.status_code == 301 or sp.status_code == 302:
-                url = sp.headers['Location']
-                sp = requests.session().get(url, proxies={"http": "http://{}".format(proxy)}, headers=headers,
-                                            allow_redirects=False)
-            content = sp.content
-            soup = BeautifulSoup(content, "html.parser")
-            result = 0
-    return soup, proxy, cookie
-
-
-def get_info(sku, c_sku, new_url, proxy, cookie, country):
-    sp, proxy, cookie = not_bot2(new_url, proxy, cookie, country)
+def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
+    sp, soup = not_bot(new_url, cookie_pool, country, lock)
     title = sp.find_all(
         'h1', class_="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor")
     title = title[0].get_text()
@@ -290,22 +232,18 @@ def get_info(sku, c_sku, new_url, proxy, cookie, country):
         is_out_of_stock = 'out_of_stock'
 
     output = [sku[0], c_sku, title, is_out_of_stock, salePrice, rating, review]
-    # print('已获取 {} 的全部信息\n{}'.format(c_sku, output))
-    return output, proxy, cookie
-    # return [sku[0], c_sku, link_ava, waymore_num, is_out_of_stock,
-    #         pic_num, len(link_list)] + link_list
+    return output, proxy
 
 
-def get_all_sku(sku, table1, proxy, cookie, country):
+def get_all_sku(sku, table1, cookie_pool, country, lock):
     com = 'com' if country == "US" else 'ca'
-
-    soup, proxy, sp, cookie = not_bot1('https://www.wayfair.' + com + '/keyword.php?keyword=' +
-                                       sku[0], proxy=proxy, cookie=cookie, country=country)
-    try:
+    soup, sp = not_bot('https://www.wayfair.' + com + '/keyword.php?keyword=' +
+                       sku[0], cookie_pool=cookie_pool, country=country, lock=lock)
+    if soup.find_all('script', type='text/javascript'):
         text = soup.find_all('script', type='text/javascript')
-        try:
+        if json.loads(text[-1].string[29:-1]).key("application"):
             application = json.loads(text[-1].string[29:-1])["application"]
-        except BaseException:
+        else:
             application = json.loads(
                 text[-1].string[29:-1])["temp-application"]
         prop = application["props"]
@@ -341,19 +279,15 @@ def get_all_sku(sku, table1, proxy, cookie, country):
                         x += 1
                     new_url = url + "?&piid=" + piids
 
-                    list1, proxy, cookie = get_info(
-                        sku, c_sku, new_url, proxy, cookie, country)
+                    list1 = get_info(
+                        sku, c_sku, new_url, cookie_pool, country, lock)
                     table1.append(list1)
         else:
-            # url1 = json.loads(sp.headers['x-wayfair-workers-debug'])["host"]
-            # url2 = json.loads(sp.headers['x-wayfair-workers-debug'])["path"]
             new_url = sp.url
-
-            list1, proxy, cookie = get_info(
-                sku, sku[0], new_url, proxy, cookie, country)
+            list1, cookie = get_info(
+                sku, sku[0], new_url, cookie_pool, country, lock)
             table1.append(list1)
-    except Exception as e:
-        # print(e)
+    else:
         c_sku = '-'
         is_out_of_stock = '-'
         title = '-'
@@ -365,29 +299,19 @@ def get_all_sku(sku, table1, proxy, cookie, country):
             is_out_of_stock,
             salePrice, '-', '-']
         table1.append(list1)
-    # print('已获取{}所有sku信息'.format(sku[0]))
-    return table1, proxy, cookie
+    return table1
 
-def process(sku, table1,dict1,lock):
-    num = str(random.choice(range(1,7)))
-    table1, proxy,cookie = get_all_sku(
-        sku, table1, dict1['proxy'+num], dict1['cookie'+num], dict1['country'])
-    if cookie != dict1['cookie'+num]:
-        lock.acquire()
-        dict1['cookie' + num] = cookie
-        lock.release()
-    if proxy != dict1['proxy'+num]:
-        lock.acquire()
-        dict1['proxy' + num] = cookie
-        lock.release()
+
+def process(sku, table1, dict1, lock, cookie_pool):
+    table1 = get_all_sku(
+        sku, table1, cookie_pool, dict1['country'], lock)
+    return table1
 
 
 if __name__ == '__main__':
-    country_list = ["US","CA"]
+    country_list = ["US", "CA"]
+    s = time()
     for country in country_list:
-        s = time()
-
-        cookie = get_cookies(country)
         proxy = '221.131.141.243:9091'
         csv_path = csv_path_US if country == "US" else csv_path_CA
         data = read_src(csv_path)
@@ -400,15 +324,17 @@ if __name__ == '__main__':
         table1 = manager.list()
         pool_num = cpu_count()
 
-        for i in range(1,pool_num+1):
-            dict1['cookie' + str(i)]=cookie
-            dict1['proxy' + str(i)] = proxy
-            dict1['country'] = country
+        cookie_pool = manager.list()
+        for i in range(20):
+            cookie_pool.append(get_cookies(country))
+
+        dict1['country'] = country
         pbar = tqdm(total=lenth)
         update = lambda *args: pbar.update(1)
         workers = Pool(pool_num)
         for sku in data:
-            workers.apply_async(process, (sku,table1,dict1,lock,), callback=update)
+            workers.apply_async(
+                process, (sku, table1, dict1, lock, cookie_pool,), callback=update)
         workers.close()
         workers.join()
 
@@ -417,5 +343,5 @@ if __name__ == '__main__':
         with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
             writer = csv.writer(f, dialect='excel')
             writer.writerows(table1)
-        e = time()
-        print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    e = time()
+    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
