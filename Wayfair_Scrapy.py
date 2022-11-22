@@ -152,7 +152,11 @@ def get_all_combine(categories):
 
 def not_bot(new_url, cookie_pool, country, lock):
     referer = referer_US if country == "US" else referer_CA
-    cookie = random.choice(cookie_pool)
+    if cookie_pool:
+        cookie = random.choice(cookie_pool)
+    else:
+        cookie = get_cookies(country)
+        cookie_pool.append(cookie)
     proxy = get_proxy().get("proxy")
     headers = {
         'cookie': cookie,
@@ -178,10 +182,8 @@ def not_bot(new_url, cookie_pool, country, lock):
         sleep(3)
         if sp.url.startswith('https://www.wayfair.com/v/captcha/show?goto') or sp.url.startswith(
                 'https://www.wayfair.ca/v/captcha/show?goto'):
-            lock.acquire()
             cookie_pool.remove(cookie)
             delete_proxy(proxy)
-            lock.release()
             if cookie_pool:
                 cookie = random.choice(cookie_pool)
             else:
@@ -231,7 +233,7 @@ def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
         is_out_of_stock = 'out_of_stock'
 
     output = [sku[0], c_sku, title, is_out_of_stock, salePrice, rating, review]
-    return output, proxy
+    return output
 
 
 def get_all_sku(sku, table1, cookie_pool, country, lock):
@@ -240,7 +242,7 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
                        sku[0], cookie_pool=cookie_pool, country=country, lock=lock)
     if soup.find_all('script', type='text/javascript'):
         text = soup.find_all('script', type='text/javascript')
-        if json.loads(text[-1].string[29:-1]).key("application"):
+        if "application" in dict(json.loads(text[-1].string[29:-1])):
             application = json.loads(text[-1].string[29:-1])["application"]
         else:
             application = json.loads(
@@ -283,7 +285,7 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
                     table1.append(list1)
         else:
             new_url = sp.url
-            list1, cookie = get_info(
+            list1 = get_info(
                 sku, sku[0], new_url, cookie_pool, country, lock)
             table1.append(list1)
     else:
@@ -325,9 +327,8 @@ if __name__ == '__main__':
         pool_num = cpu_count()
         cookie_pool = manager.list()
 
-        for i in range(5):
+        for i in range(30):
             cookie_pool.append(get_cookies(country))
-
 
         pbar = tqdm(total=lenth)
         update = lambda *args: pbar.update(1)

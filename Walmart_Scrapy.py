@@ -127,7 +127,6 @@ def process(table1, country):
     while n < len(data):
         link = data[n][0]
         sp = requests.session().get(link, headers=headers)
-        print(sp.url)
         if sp.url.startswith('https://www.walmart.com/blocked?') or sp.url.startswith(
                 'https://www.walmart.ca/blocked?'):
             headers = {
