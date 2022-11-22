@@ -1,3 +1,5 @@
+import os
+
 import sys
 
 import csv
@@ -10,6 +12,7 @@ from selenium import webdriver
 from time import sleep, time, strftime, gmtime
 from multiprocessing import Manager, Pool, cpu_count
 from tqdm import tqdm
+from base import bot_push_text
 
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
@@ -240,13 +243,26 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
     com = 'com' if country == "US" else 'ca'
     soup, sp = not_bot('https://www.wayfair.' + com + '/keyword.php?keyword=' +
                        sku[0], cookie_pool=cookie_pool, country=country, lock=lock)
-    if soup.find_all('script', type='text/javascript'):
-        text = soup.find_all('script', type='text/javascript')
-        if "application" in dict(json.loads(text[-1].string[29:-1])):
-            application = json.loads(text[-1].string[29:-1])["application"]
-        else:
-            application = json.loads(
-                text[-1].string[29:-1])["temp-application"]
+
+    text = soup.find_all('script', type='text/javascript')
+    if "application" in dict(json.loads(text[-1].string[29:-1])):
+        application = json.loads(text[-1].string[29:-1])["application"]
+    else:
+        application = json.loads(
+            text[-1].string[29:-1])["temp-application"]
+    if 'browse' in application["id"]:
+        c_sku = '-'
+        is_out_of_stock = '-'
+        title = '-'
+        salePrice = '-'
+        list1 = [
+            sku[0],
+            c_sku,
+            title,
+            is_out_of_stock,
+            salePrice, '-', '-']
+        table1.append(list1)
+    else:
         prop = application["props"]
         categories = prop['options']['standardOptions']
         exception = prop['options']['exceptions']
@@ -288,18 +304,6 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
             list1 = get_info(
                 sku, sku[0], new_url, cookie_pool, country, lock)
             table1.append(list1)
-    else:
-        c_sku = '-'
-        is_out_of_stock = '-'
-        title = '-'
-        salePrice = '-'
-        list1 = [
-            sku[0],
-            c_sku,
-            title,
-            is_out_of_stock,
-            salePrice, '-', '-']
-        table1.append(list1)
     return table1
 
 
@@ -327,7 +331,7 @@ if __name__ == '__main__':
         pool_num = cpu_count()
         cookie_pool = manager.list()
 
-        for i in range(30):
+        for i in range(6):
             cookie_pool.append(get_cookies(country))
 
         pbar = tqdm(total=lenth)
@@ -345,4 +349,4 @@ if __name__ == '__main__':
             writer = csv.writer(f, dialect='excel')
             writer.writerows(table1)
     e = time()
-    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    bot_push_text('{}总用时：{}s'.format((strftime("%H:%M:%S", gmtime(e - s))),os.path.basename(__file__)))

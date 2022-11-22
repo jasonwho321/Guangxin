@@ -9,6 +9,7 @@ import random
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from Wayfair_Scrapy import read_src, get_ua
+from base import bot_push_text
 
 link_list_US = ['http://www.walmart.com/ip/HouseInBox-Computer-Desk-Study-Writing-Table-Workstation-Organizer-with-Shelves-for-Home-Office-Use/262695439',
                 'http://www.walmart.com/ip/HouseInBox-Metal-Platform-Bed-Frame-Gold-Daybed-Metal-Platform-Bed/381052787',
@@ -169,7 +170,7 @@ if __name__ == '__main__':
     s = time()
     main('US')
     e = time()
-    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    bot_push_text('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
     # s = time()
     # main('CA')
     # e = time()

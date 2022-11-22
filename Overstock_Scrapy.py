@@ -7,6 +7,7 @@ from selenium import webdriver
 from time import time, strftime, gmtime
 from tqdm import tqdm
 from Wayfair_Scrapy import read_src
+from base import bot_push_text
 
 
 def get_info(link, table1, soup):
@@ -117,4 +118,4 @@ if __name__ == '__main__':
     s = time()
     main()
     e = time()
-    print('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    bot_push_text('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
