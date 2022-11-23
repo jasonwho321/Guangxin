@@ -185,8 +185,11 @@ def not_bot(new_url, cookie_pool, country, lock):
         sleep(3)
         if sp.url.startswith('https://www.wayfair.com/v/captcha/show?goto') or sp.url.startswith(
                 'https://www.wayfair.ca/v/captcha/show?goto'):
-            cookie_pool.remove(cookie)
-            delete_proxy(proxy)
+            try:
+                cookie_pool.remove(cookie)
+                delete_proxy(proxy)
+            except:
+                pass
             if cookie_pool:
                 cookie = random.choice(cookie_pool)
             else:
@@ -250,7 +253,54 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
     else:
         application = json.loads(
             text[-1].string[29:-1])["temp-application"]
-    if 'browse' in application["id"]:
+
+
+    prop = application["props"]
+    categories = prop['options']['standardOptions']
+    exception = prop['options']['exceptions']
+    exceptions = []
+    for i in exception:
+        i.sort()
+        new_i = []
+        for g in i:
+            new_i.append(str(g))
+        exceptions.append(new_i)
+    if len(categories) > 0:
+        all_combination, cate_dict = get_all_combine(categories)
+        url = sp.url
+        for com in all_combination:
+            com.sort()
+            if com not in exceptions:
+                # all_list.append(com)
+                x = 1
+                piids = ''
+                c_sku = ''
+                for piid in com:
+                    if x == 1:
+                        piids = piid
+                        c_sku = cate_dict[piid]
+                    else:
+                        piids = piids + "%2C" + piid
+                        c_sku = c_sku + '&' + cate_dict[piid]
+                    x += 1
+                new_url = url + "?&piid=" + piids
+
+                list1 = get_info(
+                    sku, c_sku, new_url, cookie_pool, country, lock)
+                table1.append(list1)
+    else:
+        new_url = sp.url
+        list1 = get_info(
+            sku, sku[0], new_url, cookie_pool, country, lock)
+        table1.append(list1)
+    return table1
+
+
+def process(sku, table1, dict1, lock, cookie_pool):
+    try:
+        table1 = get_all_sku(
+            sku, table1, cookie_pool, dict1['country'], lock)
+    except BaseException as e:
         c_sku = '-'
         is_out_of_stock = '-'
         title = '-'
@@ -262,54 +312,6 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
             is_out_of_stock,
             salePrice, '-', '-']
         table1.append(list1)
-    else:
-        prop = application["props"]
-        categories = prop['options']['standardOptions']
-        exception = prop['options']['exceptions']
-        exceptions = []
-        for i in exception:
-            i.sort()
-            new_i = []
-            for g in i:
-                new_i.append(str(g))
-            exceptions.append(new_i)
-        if len(categories) > 0:
-            all_combination, cate_dict = get_all_combine(categories)
-            # all_list = []
-            # url1 = json.loads(sp.headers['x-wayfair-workers-debug'])["host"]
-            # url2 = json.loads(sp.headers['x-wayfair-workers-debug'])["path"]
-            url = sp.url
-            for com in all_combination:
-                com.sort()
-                if com not in exceptions:
-                    # all_list.append(com)
-                    x = 1
-                    piids = ''
-                    c_sku = ''
-                    for piid in com:
-                        if x == 1:
-                            piids = piid
-                            c_sku = cate_dict[piid]
-                        else:
-                            piids = piids + "%2C" + piid
-                            c_sku = c_sku + '&' + cate_dict[piid]
-                        x += 1
-                    new_url = url + "?&piid=" + piids
-
-                    list1 = get_info(
-                        sku, c_sku, new_url, cookie_pool, country, lock)
-                    table1.append(list1)
-        else:
-            new_url = sp.url
-            list1 = get_info(
-                sku, sku[0], new_url, cookie_pool, country, lock)
-            table1.append(list1)
-    return table1
-
-
-def process(sku, table1, dict1, lock, cookie_pool):
-    table1 = get_all_sku(
-        sku, table1, cookie_pool, dict1['country'], lock)
     return table1
 
 
