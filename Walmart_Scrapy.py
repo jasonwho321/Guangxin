@@ -1,5 +1,6 @@
 # -- coding: utf-8 --**
 import csv
+import os
 from datetime import datetime
 import json
 from selenium import webdriver
@@ -170,7 +171,7 @@ if __name__ == '__main__':
     s = time()
     main('US')
     e = time()
-    bot_push_text('总用时：{}s'.format(strftime("%H:%M:%S", gmtime(e - s))))
+    bot_push_text('{}\n总用时：{}s'.format(os.path.basename(__file__),strftime("%H:%M:%S", gmtime(e - s))))
     # s = time()
     # main('CA')
     # e = time()

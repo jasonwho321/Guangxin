@@ -351,4 +351,4 @@ if __name__ == '__main__':
             writer = csv.writer(f, dialect='excel')
             writer.writerows(table1)
     e = time()
-    bot_push_text('{}总用时：{}s'.format((strftime("%H:%M:%S", gmtime(e - s))),os.path.basename(__file__)))
+    bot_push_text('{}\n总用时：{}s'.format(os.path.basename(__file__),strftime("%H:%M:%S", gmtime(e - s))))
