@@ -4,11 +4,11 @@ from PIL import ImageFile,Image
 import pdfplumber
 import cv2
 
-def puttext():
-    bk_img = cv2.imread(r"C:\Users\Admin\Desktop\package_label\box of 1100 new\box of 1100 new_00.png")
-    cv2.putText(bk_img,'1749',(420,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
-    cv2.putText(bk_img,"1750",(940,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
-    cv2.imwrite(r"C:\Users\Admin\Desktop\package_label\{}.jpg".format("1750"),bk_img)
+def puttext(png_board_path,num_text,limit_text,path):
+    bk_img = cv2.imread(png_board_path)
+    cv2.putText(bk_img,num_text,(420,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
+    cv2.putText(bk_img,limit_text,(940,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
+    cv2.imwrite("{}\{}.jpg".format(path,"1750"),bk_img)
 
 def pic2pdf(img_path, pdf_path):
     file_list = os.listdir(img_path)
@@ -33,20 +33,10 @@ def pdf_image(pdfPath,imgPath,zoom_x,zoom_y,rotation_angle):
         #pm.writePNG(imgPath)
     pdf.close()
 
-with pdfplumber.open(r"C:\Users\Admin\Documents\Tencent Files\544409644\FileRecv\Poundex\表格类\210901 2022 Motion Collection .pdf") as pdf:
-    first_page = pdf.pages[0]
-    print(first_page.chars[0])
-
-for i in range(1749):
-    print("进度：{}/{}".format(str(i+1),"1750"))
-    bk_img = cv2.imread(r"C:\Users\Admin\Desktop\package_label\box of 1100 new\box of 1100 new_00.png")
-    cv2.putText(bk_img,str(i+1),(420,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
-    cv2.putText(bk_img,"1750",(940,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
-    cv2.imwrite(r"C:\Users\Admin\Desktop\package_label\{}.jpg".format(str(i+1)),bk_img)
 
 
 
-def rea(path, pdf_name):
+def rea(path, pdf_name,limit):
     """
     :param path: 图片文件夹路径
     :param pdf_name: 输出PDF
@@ -75,29 +65,51 @@ def rea(path, pdf_name):
     # 已有确定的命名规则
     new_pic = []
     im_list = []
-    for i in range(1000,1749):
-        new_pic.append("{}.jpg".format(str(i+2)))
+    k = 0
+    while limit-500*k >= 500:
+        for i in range(500*k+1,500*k+500):
+            new_pic.append("{}.jpg".format(str(i)))
 
-    im1 = Image.open(os.path.join(path, new_pic[0]))
-    new_pic.pop(0)
+        im1 = Image.open(os.path.join(path, new_pic[0]))
+        new_pic.pop(0)
 
-    for i in new_pic:
-        img = Image.open(os.path.join(path, i))
-        # im_list.append(Image.open(i))
-        if img.mode == "RGBA":
-            img = img.convert('RGB')
-            im_list.append(img)
-        else:
-            im_list.append(img)
+        for i in new_pic:
+            img = Image.open(os.path.join(path, i))
+            # im_list.append(Image.open(i))
+            if img.mode == "RGBA":
+                img = img.convert('RGB')
+                im_list.append(img)
+            else:
+                im_list.append(img)
+        im1.save('{}/{}{}.pdf'.format(out_put_path,pdf_name,str(500*(k+1))), "PDF", resolution=100.0, save_all=True, append_images=im_list)
+        print("输出文件名称：", pdf_name)
+        k+=1
+    else:
+        for i in range(500*k+1,limit):
+            new_pic.append("{}.jpg".format(str(i)))
 
-    im1.save(pdf_name, "PDF", resolution=100.0, save_all=True, append_images=im_list)
-    print("输出文件名称：", pdf_name)
+        im1 = Image.open(os.path.join(path, new_pic[0]))
+        new_pic.pop(0)
+
+        for i in new_pic:
+            img = Image.open(os.path.join(path, i))
+            # im_list.append(Image.open(i))
+            if img.mode == "RGBA":
+                img = img.convert('RGB')
+                im_list.append(img)
+            else:
+                im_list.append(img)
+        im1.save('{}/{}{}.pdf'.format(out_put_path,pdf_name,str(500*(k+1))), "PDF", resolution=100.0, save_all=True, append_images=im_list)
+        print("输出文件名称：", pdf_name)
+
 
 
 if __name__ == '__main__':
-    pdf_name = r'C:\Users\Admin\Desktop\package_label\package_label_10001-1750.pdf'
-    mypath=r"C:\Users\Admin\Desktop\package_label"
-    if ".pdf" in pdf_name:
-        rea(mypath, pdf_name=pdf_name)
-    else:
-        rea(mypath, pdf_name="{}_1-1000.pdf".format(pdf_name))
+    limit = 1500
+    out_put_path = '/Users/huzhang/Desktop/output'
+    pdf_name = 'package_label'
+
+    for i in range(1,limit+1):
+        print("进度：{}/{}".format(str(i + 1), str(limit)))
+        puttext('',str(i),str(limit),out_put_path)
+    rea(out_put_path, pdf_name,limit)

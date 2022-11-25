@@ -29,7 +29,6 @@ def get_info(link, table1, soup):
 
 
 def mapping_sku(csv_priceout, csv_map):
-
     df_price = pd.read_csv(csv_priceout)
     df_map = pd.read_csv(csv_map)
     df_map = df_map.to_dict('list')

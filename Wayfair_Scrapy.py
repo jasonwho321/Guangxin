@@ -13,6 +13,7 @@ from time import sleep, time, strftime, gmtime
 from multiprocessing import Manager, Pool, cpu_count
 from tqdm import tqdm
 from base import bot_push_text
+import pandas as pd
 
 
 referer_US = 'https://www.wayfair.com/furniture/cat/furniture-c45974.html'
@@ -41,7 +42,15 @@ csv_path_CA = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfa
 csv_path_US = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\SKU_list_US.csv'
 ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.42'
 
-
+def mapping_sku(csv_priceout, csv_map,full_sku,partner_number):
+    df_price = pd.read_csv(csv_priceout)
+    df_map = pd.read_csv(csv_map)
+    df_map = df_map.to_dict('list')
+    df_map = dict(zip(df_map[full_sku], df_map[partner_number]))
+    df_price[full_sku] = df_price[full_sku].str.strip()
+    df_price[partner_number] = df_price[full_sku].map(df_map, na_action=None)
+    df_price.to_csv(csv_priceout, index=False)
+    return df_price
 def get_cookies(country):
 
     link_list = link_list_US if country == "US" else link_list_CA
@@ -238,7 +247,7 @@ def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     else:
         is_out_of_stock = 'out_of_stock'
 
-    output = [sku[0], c_sku, title, is_out_of_stock, salePrice, rating, review]
+    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, salePrice, rating, review]
     return output
 
 
@@ -308,6 +317,7 @@ def process(sku, table1, dict1, lock, cookie_pool):
         list1 = [
             sku[0],
             c_sku,
+            '-',
             title,
             is_out_of_stock,
             salePrice, '-', '-']
@@ -344,11 +354,15 @@ if __name__ == '__main__':
                 process, (sku, table1, dict1, lock, cookie_pool,), callback=update)
         workers.close()
         workers.join()
+        table1.insert(0, ['SKU', 'option', 'full_list', 'title', 'stock','price','rate','reviews'])
 
         csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
             date + '_' + country + '.csv'
         with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
             writer = csv.writer(f, dialect='excel')
             writer.writerows(table1)
+        mapping_sku(
+            csv_path1,
+            r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\SKU_Mapping_{}.csv'.format(country),'full_sku','partner_number')
     e = time()
     bot_push_text('{}\n总用时：{}s'.format(os.path.basename(__file__),strftime("%H:%M:%S", gmtime(e - s))))
