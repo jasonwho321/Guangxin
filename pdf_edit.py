@@ -1,7 +1,6 @@
 import os
 import fitz
 from PIL import ImageFile,Image
-import pdfplumber
 import cv2
 
 def puttext(png_board_path,num_text,limit_text,path):
