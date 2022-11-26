@@ -196,7 +196,7 @@ def not_bot(new_url, cookie_pool, country, lock):
                 'https://www.wayfair.ca/v/captcha/show?goto'):
             try:
                 cookie_pool.remove(cookie)
-                delete_proxy(proxy)
+                # delete_proxy(proxy)
             except:
                 pass
             if cookie_pool:

@@ -5,15 +5,13 @@ csv_path_CA = r'C:\Users\Administrator\Nutstore\1\「晓望集群」\S数据分�
 csv_path_US = r'C:\Users\Administrator\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Monitior\wayfair_Monitor_US.csv'
 
 
-def monitor_notice(df):
+def monitor_notice(df,country):
     data = df[(df['option'] == '-')]
-    invalid_sku = data['sku'].values.tolist()
-    data = df[(df['stock'] == 'out_of_stock')]
-    out_of_stock_sku = data['partner_number'].values.tolist()
-
-    bot_push_text('已失效SKU：\n{}'.format('\n'.join(invalid_sku)))
-
-    bot_push_text('显示缺货Part Number：\n{}'.format('\n'.join(out_of_stock_sku)))
+    invalid_sku = data['SKU'].values.tolist()
+    data1 = df[(df['stock'] == 'out_of_stock')]
+    out_of_stock_sku = data1['full_sku'].values.tolist()
+    bot_push_text('{}站点已失效SKU：\n{}'.format(country,'\n'.join(invalid_sku)),mobile_list=[],key='13cf9763-718b-4d13-b856-25c0ae064a09')
+    bot_push_text('{}站点缺货SKU：\n{}'.format(country,'\n'.join(out_of_stock_sku)),mobile_list=[],key='13cf9763-718b-4d13-b856-25c0ae064a09')
 
 
 if __name__ == '__main__':
@@ -52,7 +50,7 @@ if __name__ == '__main__':
                     process, (sku, table1, dict1, lock, cookie_pool,), callback=update)
             workers.close()
             workers.join()
-            table1.insert(0, ['SKU', 'option', 'full_list', 'title', 'stock','price','rate','reviews'])
+            table1.insert(0, ['SKU', 'option', 'full_sku', 'title', 'stock','price','rate','reviews'])
             csv_path1 = r'C:\Users\Administrator\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Monitior\Wayfair_PriceOutput_' + \
                 date + '_' + country + '.csv'
             with open(csv_path1, 'w', encoding='utf_8_sig', newline='') as f:
@@ -61,7 +59,7 @@ if __name__ == '__main__':
             df = mapping_sku(
                 csv_path1,
                 r'C:\Users\Administrator\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\SKU_Mapping_{}.csv'.format(country), 'full_sku', 'partner_number')
-            monitor_notice(df)
+            # monitor_notice(df,country)
         e = time()
         bot_push_text(
             '{}\n总用时：{}s'.format(
