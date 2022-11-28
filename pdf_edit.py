@@ -1,12 +1,12 @@
 import os
-import fitz
+# import fitz
 from PIL import ImageFile,Image
 import cv2
 
 def puttext(png_board_path,num_text,limit_text,path):
     bk_img = cv2.imread(png_board_path)
     cv2.putText(bk_img,num_text,(420,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
-    cv2.putText(bk_img,limit_text,(940,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
+    # cv2.putText(bk_img,limit_text,(940,920),cv2.FONT_HERSHEY_SIMPLEX,4,(0,0,0),15,cv2.LINE_AA)
     cv2.imwrite("{}\{}.jpg".format(path,"1750"),bk_img)
 
 def pic2pdf(img_path, pdf_path):
@@ -18,19 +18,19 @@ def pic2pdf(img_path, pdf_path):
             im1.save(pdf_path + pdf_name + '.pdf', "PDF", resolution=100.0)
 
 
-def pdf_image(pdfPath,imgPath,zoom_x,zoom_y,rotation_angle):
-    # 打开PDF文件
-    pdf = fitz.open(pdfPath)
-    # 逐页读取PDF
-    for pg in range(0, pdf.pageCount):
-        page = pdf[pg]
-        # 设置缩放和旋转系数
-        trans = fitz.Matrix(zoom_x, zoom_y).preRotate(rotation_angle)
-        pm = page.getPixmap(matrix=trans, alpha="False")
-        # 开始写图像
-        pm.writePNG(imgPath+str(pg)+".png")
-        #pm.writePNG(imgPath)
-    pdf.close()
+# def pdf_image(pdfPath,imgPath,zoom_x,zoom_y,rotation_angle):
+#     # 打开PDF文件
+#     pdf = fitz.open(pdfPath)
+#     # 逐页读取PDF
+#     for pg in range(0, pdf.pageCount):
+#         page = pdf[pg]
+#         # 设置缩放和旋转系数
+#         trans = fitz.Matrix(zoom_x, zoom_y).preRotate(rotation_angle)
+#         pm = page.getPixmap(matrix=trans, alpha="False")
+#         # 开始写图像
+#         pm.writePNG(imgPath+str(pg)+".png")
+#         #pm.writePNG(imgPath)
+#     pdf.close()
 
 
 
@@ -105,10 +105,10 @@ def rea(path, pdf_name,limit):
 
 if __name__ == '__main__':
     limit = 1500
-    out_put_path = '/Users/huzhang/Desktop/output'
+    out_put_path = r'C:\Users\Admin\Nutstore\1\我的坚果云\output'
     pdf_name = 'package_label'
 
     for i in range(1,limit+1):
         print("进度：{}/{}".format(str(i + 1), str(limit)))
-        puttext('',str(i),str(limit),out_put_path)
+        puttext('{}\Package Label.PNG'.format(out_put_path),str(i),str(limit),out_put_path)
     rea(out_put_path, pdf_name,limit)

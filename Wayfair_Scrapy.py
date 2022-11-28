@@ -354,7 +354,7 @@ if __name__ == '__main__':
                 process, (sku, table1, dict1, lock, cookie_pool,), callback=update)
         workers.close()
         workers.join()
-        table1.insert(0, ['SKU', 'option', 'full_list', 'title', 'stock','price','rate','reviews'])
+        table1.insert(0, ['SKU', 'option', 'full_sku', 'title', 'stock','price','rate','reviews'])
 
         csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
             date + '_' + country + '.csv'
