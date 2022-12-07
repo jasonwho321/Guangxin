@@ -53,13 +53,11 @@ if __name__ == '__main__':
                     'span', class_='a-offscreen')[0].text.strip()
             else:
                 sale_price = '-'
-                print(sale_price)
             if soup.find_all('span', class_='a-offscreen'):
                 sale_price = soup.find_all(
                     'span', class_='a-offscreen')[0].text.strip()
             else:
                 sale_price = '-'
-                print(sale_price)
             if soup.find_all('h5', class_='aod-asin-title-text-class'):
                 title = soup.find_all(
                     'h5', class_='aod-asin-title-text-class')[0].text.strip()
