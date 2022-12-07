@@ -255,7 +255,6 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
     com = 'com' if country == "US" else 'ca'
     soup, sp = not_bot('https://www.wayfair.' + com + '/keyword.php?keyword=' +
                        sku[0], cookie_pool=cookie_pool, country=country, lock=lock)
-
     text = soup.find_all('script', type='text/javascript')
     if "application" in dict(json.loads(text[-1].string[29:-1])):
         application = json.loads(text[-1].string[29:-1])["application"]
