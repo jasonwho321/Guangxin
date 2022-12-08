@@ -49,7 +49,7 @@ def mapping_sku(csv_priceout, csv_map,full_sku,partner_number):
     df_map = dict(zip(df_map[full_sku], df_map[partner_number]))
     df_price[full_sku] = df_price[full_sku].str.strip()
     df_price[partner_number] = df_price[full_sku].map(df_map, na_action=None)
-    df_price.to_csv(csv_priceout, index=False)
+    df_price.to_csv(csv_priceout)
     return df_price
 def get_cookies(country):
 
@@ -229,13 +229,9 @@ def not_bot(new_url, cookie_pool, country, lock):
 
 def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     sp, soup = not_bot(new_url, cookie_pool, country, lock)
-    sale = sp.find_all(
-        'div', class_="ProductDetailImageCarousel-top")
+    sale = sp.find('div', class_="ProductDetailImageCarousel-top").find_all('span', class_="Flag__StyledFlagContent-scqam4-1 kkUOYD pl-CardFlag-content")
     if sale:
-        if sale[0].find_all('span', class_="Flag__StyledFlagContent-scqam4-1 kkUOYD pl-CardFlag-content"):
-            sale_tag = 'sale'
-        else:
-            sale_tag = '-'
+        sale_tag = 'sale'
     else:
         sale_tag = '-'
     title = sp.find_all(
@@ -362,7 +358,7 @@ if __name__ == '__main__':
                 process, (sku, table1, dict1, lock, cookie_pool,), callback=update)
         workers.close()
         workers.join()
-        table1.insert(0, ['SKU', 'option', 'full_sku', 'title', 'stock','price','rate','reviews'])
+        table1.insert(0, ['SKU', 'option', 'full_sku', 'title', 'stock','price','rate','reviews','sale_tag'])
 
         csv_path1 = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Wayfair爬虫\Wayfair_PriceOutput_' + \
             date + '_' + country + '.csv'
