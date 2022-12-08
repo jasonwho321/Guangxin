@@ -51,6 +51,7 @@ def mapping_sku(csv_priceout, csv_map,full_sku,partner_number):
     df_price[partner_number] = df_price[full_sku].map(df_map, na_action=None)
     df_price.to_csv(csv_priceout)
     return df_price
+
 def get_cookies(country):
 
     link_list = link_list_US if country == "US" else link_list_CA
@@ -252,7 +253,7 @@ def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     else:
         is_out_of_stock = 'out_of_stock'
 
-    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, salePrice, rating, review,sale_tag]
+    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, salePrice, rating, review]
     return output
 
 
@@ -269,9 +270,20 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
 
 
     prop = application["props"]
+    try:
+        flagServiceFlagData = prop["mainCarousel"]["flagServiceFlagData"]
+    except:
+        flagServiceFlagData = []
     categories = prop['options']['standardOptions']
     exception = prop['options']['exceptions']
     exceptions = []
+    flag_list = []
+    if flagServiceFlagData:
+        for i in flagServiceFlagData:
+            if flagServiceFlagData[i]['flagText'] == 'Sale':
+                flag_list.append(i.replace('_','%2C'))
+    else:
+        sale_tag = '-'
     for i in exception:
         i.sort()
         new_i = []
@@ -297,14 +309,18 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
                         c_sku = c_sku + '&' + cate_dict[piid]
                     x += 1
                 new_url = url + "?&piid=" + piids
-
                 list1 = get_info(
                     sku, c_sku, new_url, cookie_pool, country, lock)
+                if piids in flag_list:
+                    list1.append('Sale')
+                else:
+                    list1.append('-')
                 table1.append(list1)
     else:
         new_url = sp.url
         list1 = get_info(
             sku, sku[0], new_url, cookie_pool, country, lock)
+        list1.append(sale_tag)
         table1.append(list1)
     return table1
 
