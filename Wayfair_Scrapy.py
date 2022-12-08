@@ -229,6 +229,15 @@ def not_bot(new_url, cookie_pool, country, lock):
 
 def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     sp, soup = not_bot(new_url, cookie_pool, country, lock)
+    sale = sp.find_all(
+        'div', class_="ProductDetailImageCarousel-top")
+    if sale:
+        if sale[0].find_all('span', class_="Flag__StyledFlagContent-scqam4-1 kkUOYD pl-CardFlag-content"):
+            sale_tag = 'sale'
+        else:
+            sale_tag = '-'
+    else:
+        sale_tag = '-'
     title = sp.find_all(
         'h1', class_="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor")
     title = title[0].get_text()
@@ -247,7 +256,7 @@ def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     else:
         is_out_of_stock = 'out_of_stock'
 
-    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, salePrice, rating, review]
+    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, salePrice, rating, review,sale_tag]
     return output
 
 
@@ -319,7 +328,7 @@ def process(sku, table1, dict1, lock, cookie_pool):
             '-',
             title,
             is_out_of_stock,
-            salePrice, '-', '-']
+            salePrice, '-', '-','-']
         table1.append(list1)
     return table1
 
