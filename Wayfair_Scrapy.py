@@ -230,11 +230,7 @@ def not_bot(new_url, cookie_pool, country, lock):
 
 def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     sp, soup = not_bot(new_url, cookie_pool, country, lock)
-    sale = sp.find('div', class_="ProductDetailImageCarousel-top").find_all('span', class_="Flag__StyledFlagContent-scqam4-1 kkUOYD pl-CardFlag-content")
-    if sale:
-        sale_tag = 'sale'
-    else:
-        sale_tag = '-'
+
     title = sp.find_all(
         'h1', class_="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor")
     title = title[0].get_text()
@@ -282,8 +278,7 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
         for i in flagServiceFlagData:
             if flagServiceFlagData[i]['flagText'] == 'Sale':
                 flag_list.append(i.replace('_','%2C'))
-    else:
-        sale_tag = '-'
+
     for i in exception:
         i.sort()
         new_i = []
@@ -320,7 +315,10 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
         new_url = sp.url
         list1 = get_info(
             sku, sku[0], new_url, cookie_pool, country, lock)
-        list1.append(sale_tag)
+        if flag_list:
+            list1.append('Sale')
+        else:
+            list1.append('-')
         table1.append(list1)
     return table1
 
