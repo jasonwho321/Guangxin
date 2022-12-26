@@ -272,7 +272,7 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
     categories = prop['options']['standardOptions']
     exception = prop['options']['exceptions']
     exceptions = []
-    flag_list = []
+    flag_list = ['1']
     if flagServiceFlagData:
         for i in flagServiceFlagData:
             if flagServiceFlagData[i]['flagText'] == 'Sale':
