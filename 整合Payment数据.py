@@ -174,9 +174,9 @@ if __name__ == '__main__':
     # newbook3 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_PAY.xlsx"
     # newbook4 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_DUC.xlsx"
     newbook_list = [newbook1, newbook2]
-    dir_list = [
-        r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22',
-        r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22']
+    # dir_list = [
+    #     r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22',
+    #     r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22']
     # dir_list = [
     #     r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22-' + month,
     #     r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22-' + month,

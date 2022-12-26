@@ -3,6 +3,7 @@ import os
 import sys
 
 import csv
+import traceback
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
@@ -240,8 +241,8 @@ def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     review = sp.find_all(
         'span', class_="ProductRatingNumberWithCount-count ProductRatingNumberWithCount-count--link")
     review = review[0].get_text()
-    salePrice = sp.find_all('span', attrs={"font-size": "5000"})
-    salePrice = salePrice[0].get_text()
+    saleprice = sp.find_all('script', attrs={"type": "application/ld+json"})
+    saleprice = json.loads(saleprice[0].string)['offers']['price']
     button_list = sp.find_all(
         'button', class_="OutOfStockOverlay OutOfStockOverlay--withAnchor")
     if not button_list:
@@ -249,7 +250,7 @@ def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     else:
         is_out_of_stock = 'out_of_stock'
 
-    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, salePrice, rating, review]
+    output = [sku[0], c_sku,'{} {}'.format(sku[0],c_sku), title, is_out_of_stock, saleprice, rating, review]
     return output
 
 
@@ -258,13 +259,11 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
     soup, sp = not_bot('https://www.wayfair.' + com + '/keyword.php?keyword=' +
                        sku[0], cookie_pool=cookie_pool, country=country, lock=lock)
     text = soup.find_all('script', type='text/javascript')
-    if "application" in dict(json.loads(text[-1].string[29:-1])):
+    if "application" in json.loads(text[-1].string[29:-1]):
         application = json.loads(text[-1].string[29:-1])["application"]
     else:
         application = json.loads(
             text[-1].string[29:-1])["temp-application"]
-
-
     prop = application["props"]
     try:
         flagServiceFlagData = prop["mainCarousel"]["flagServiceFlagData"]
@@ -310,6 +309,7 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
                     list1.append('Sale')
                 else:
                     list1.append('-')
+                print(list1)
                 table1.append(list1)
     else:
         new_url = sp.url
@@ -319,6 +319,7 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
             list1.append('Sale')
         else:
             list1.append('-')
+        print(list1)
         table1.append(list1)
     return table1
 
@@ -328,6 +329,8 @@ def process(sku, table1, dict1, lock, cookie_pool):
         table1 = get_all_sku(
             sku, table1, cookie_pool, dict1['country'], lock)
     except BaseException as e:
+        traceback.print_exc()
+        print(e)
         c_sku = '-'
         is_out_of_stock = '-'
         title = '-'

@@ -4,7 +4,7 @@ from Overstock_Scrapy import mapping_sku
 csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Amazon爬虫\SKU_list_{}.csv'
 country_list = ['US', 'CA']
 cookie_US = 'session-id=132-3025649-3531568; i18n-prefs=USD; skin=noskin; ubid-main=134-8454797-8017726; session-id-time=2082787201l; lc-main=en_US; session-token="g7reWoH9uzHvllMfIcP2v3qUY2nR2izGuac/GUnKvTleF3ArXEOFyRmnWVAxRheED56LBEQiacReWM5U4ng6WXOxQc1FKaUnm+fcU1n7XO0DLXdk0PbP7zaLrHSp6UeBKw1LtOy2TBBp9/zoy/U2MgNcN7k5QexvEHSzYCNKY45wSrDEnxAGLmG26XmSFYsi1ezsJLW4t0Uu125u8VQjNMa85RsnahVsM3HxtUYLBHY="; csm-hit=adb:adblk_no&t:1670316849288&tb:N3QVYE3M3DRFENCJ4GR8+s-1EHXY0SC7EJSKTQCXY31|1670316849288'
-cookie_CA = ''
+cookie_CA = 'session-id=133-1803103-9621123; session-id-time=2082787201l; i18n-prefs=CAD; ubid-acbca=132-6933899-9953406; csm-hit=tb:s-NZ4QH1FBQ0HQARWRB276|1670385456390&t:1670385457080&adb:adblk_no; session-token="qUVQPU9JDfvzqcGA68ECqyj+RoYC9EfFwqoMGHxgPnZj0uJNP625OalNqnbqa36ksnokV+1Ch82r8i+EjmnyZwxYH39E2roeL2Qh3yJMhjctG0RWdaixTekdKVUZjyruRRiJWIgB8GZWcLTA1yFnc8lwZbjPoSYjXVYSs9voB6JWGPKpJznmy5y4y8dj1Wc981rR7OzI7+16B3/dLuYhd1bb/6O3hn2fWGi5MusPyxA="'
 
 if __name__ == '__main__':
     s = time()
