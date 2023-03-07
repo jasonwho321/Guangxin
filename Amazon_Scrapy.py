@@ -2,9 +2,9 @@ from Wayfair_Scrapy import *
 from Overstock_Scrapy import mapping_sku
 
 csv_path = r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\Amazon爬虫\SKU_list_{}.csv'
-country_list = ['US', 'CA']
+country_list = ['CA']
 cookie_US = 'session-id=132-3025649-3531568; i18n-prefs=USD; skin=noskin; ubid-main=134-8454797-8017726; session-id-time=2082787201l; lc-main=en_US; session-token="g7reWoH9uzHvllMfIcP2v3qUY2nR2izGuac/GUnKvTleF3ArXEOFyRmnWVAxRheED56LBEQiacReWM5U4ng6WXOxQc1FKaUnm+fcU1n7XO0DLXdk0PbP7zaLrHSp6UeBKw1LtOy2TBBp9/zoy/U2MgNcN7k5QexvEHSzYCNKY45wSrDEnxAGLmG26XmSFYsi1ezsJLW4t0Uu125u8VQjNMa85RsnahVsM3HxtUYLBHY="; csm-hit=adb:adblk_no&t:1670316849288&tb:N3QVYE3M3DRFENCJ4GR8+s-1EHXY0SC7EJSKTQCXY31|1670316849288'
-cookie_CA = 'session-id=133-1803103-9621123; session-id-time=2082787201l; i18n-prefs=CAD; ubid-acbca=132-6933899-9953406; csm-hit=tb:s-NZ4QH1FBQ0HQARWRB276|1670385456390&t:1670385457080&adb:adblk_no; session-token="qUVQPU9JDfvzqcGA68ECqyj+RoYC9EfFwqoMGHxgPnZj0uJNP625OalNqnbqa36ksnokV+1Ch82r8i+EjmnyZwxYH39E2roeL2Qh3yJMhjctG0RWdaixTekdKVUZjyruRRiJWIgB8GZWcLTA1yFnc8lwZbjPoSYjXVYSs9voB6JWGPKpJznmy5y4y8dj1Wc981rR7OzI7+16B3/dLuYhd1bb/6O3hn2fWGi5MusPyxA="'
+cookie_CA = 'session-id=133-1803103-9621123; session-id-time=2082787201l; i18n-prefs=CAD; ubid-acbca=132-6933899-9953406; lc-acbca=en_CA; session-token=jVdpSzUfnqjtqUPv6d8Envg9p5/bwtm455HywbszBKm90yceI/8IJs1xAW2buJhxSK/Ob4Giq/WpmmUcIzpSpOVPHGyFnbzBxwXDhyZHegrW+oiXUjtI/8J+pwPwXk0Tgyn9SEs5L0P26dDfILQSAWf27k7RWi+G5Rxp2JCNAxUAgyXCD8q0AdhqA2us8Ol4S4Z2BCuxxiXR0XFLBG+BqHOEyjALANNhqXgY3Va5Cr0; csm-hit=tb:26YA1MJ9CNY24ZJ7RNDP+s-S0ZN8RHKF69T313K6FVE|1677750095060&t:1677750095060&adb:adblk_no'
 
 if __name__ == '__main__':
     s = time()
@@ -28,12 +28,14 @@ if __name__ == '__main__':
             asin = data[i][0]
             url = 'https://www.amazon.{}/gp/product/ajax/ref=auto_load_aod?asin={}&experienceId=aodAjaxMain'.format('com' if country == 'US' else 'ca',
                                                                                                                     asin)
-            sp = requests.session().get(url, headers=headers)
+            sp = requests.get(url, headers=headers)
             content = sp.content
             soup = BeautifulSoup(content, "html.parser")
             limit = 0
+            print(soup.title)
             while soup.title is not None:
-                if limit > 20:
+                print(limit)
+                if limit > 3:
                     break
                 else:
                     limit += 1
@@ -45,7 +47,7 @@ if __name__ == '__main__':
                 asin = data[i][0]
                 url = 'https://www.amazon.com/gp/product/ajax/ref=auto_load_aod?asin={}&experienceId=aodAjaxMain'.format('com' if country == 'US' else 'ca',
                                                                                                                         asin)
-                sp = requests.session().get(url, headers=headers)
+                sp = requests.get(url, headers=headers)
                 content = sp.content
                 soup = BeautifulSoup(content, "html.parser")
             if soup.find_all('span', class_='a-offscreen'):
@@ -75,6 +77,7 @@ if __name__ == '__main__':
                 star = '-'
             dict1['Asin'].append(asin)
             dict1['Sale_price'].append(sale_price)
+            print(asin,sale_price)
             dict1['title'].append(title)
             dict1['rating'].append(rating)
             dict1['star'].append(star)

@@ -60,7 +60,7 @@ def collect_US(sht, write_row,sht2,wb2):
     # 获取每条扣费项目起始行
     rownum_list = []
     for i in range(1, int(lastrow) + 1):
-        if sht.range("A" + str(i)).value == "Credit":
+        if sht.range("A" + str(i)).value == "Credit" or sht.range("A" + str(i)).value == "Deduction":
             rownum_list.append(i)
     rem_num = sht.range("A1").value[21:]
     rem_date = sht.range("A3").value[5:]
@@ -108,7 +108,7 @@ def collect_ca(sht, write_row,sht2,wb2):
     # 获取每条扣费项目起始行
     rownum_list = []
     for i in range(1, int(lastrow) + 1):
-        if sht.range("A" + str(i)).value == "Credit":
+        if sht.range("A" + str(i)).value == "Credit" or sht.range("A" + str(i)).value == "Deduction":
             rownum_list.append(i)
     rem_num = sht.range("A1").value[21:]
     rem_date = sht.range("A3").value[5:]
@@ -160,19 +160,12 @@ def collect_ca(sht, write_row,sht2,wb2):
 
 
 if __name__ == '__main__':
-    month = 'Apr'
 
     app = xw.App(visible=True, add_book=False)
-    # newbook1 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\US_PAY_" + month + ".xlsx"
-    # newbook2 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\US_DUC_" + month + ".xlsx"
-    # newbook3 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_PAY_" + month + ".xlsx"
-    # newbook4 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_DUC_" + month + ".xlsx"
-    newbook1 = r"C:\Users\Admin\Downloads\US_PAY.xlsx"
-    newbook2 = r"C:\Users\Admin\Downloads\US_DUC.xlsx"
+    newbook1 = r"C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\水单核对\CA_PAY.xlsx"
+    newbook2 = r"C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\水单核对\CA_DUC.xlsx"
     # newbook1 = r"C:\Users\Admin\Downloads\CA_PAY.xlsx"
     # newbook2 = r"C:\Users\Admin\Downloads\CA_DUC.xlsx"
-    # newbook3 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_PAY.xlsx"
-    # newbook4 = r"E:\OneDrive\广新\售后报告\2022 Wayfair payment\CA_DUC.xlsx"
     newbook_list = [newbook1, newbook2]
     # dir_list = [
     #     r'E:\OneDrive\广新\售后报告\2022 Wayfair payment\US 22',
@@ -213,7 +206,7 @@ if __name__ == '__main__':
         'rea',
         'desc']
     sht2.range('A1').value = header_list2
-    csv_list = bianli(r'C:\Users\Admin\Downloads\2022WayfairUS')
+    csv_list = bianli(r'C:\Users\Admin\Nutstore\1\「晓望集群」\S数据分析\水单核对\CA')
 
     for csvdoc in csv_list:
         print('进度：{}/{}'.format(str(csv_list.index(csvdoc)),str(len(csv_list))))

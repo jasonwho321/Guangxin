@@ -1,5 +1,5 @@
 import os
-
+# coding=utf-8
 import sys
 
 import csv
@@ -50,8 +50,12 @@ def mapping_sku(csv_priceout, csv_map,full_sku,partner_number):
     df_map = dict(zip(df_map[full_sku], df_map[partner_number]))
     df_price[full_sku] = df_price[full_sku].str.strip()
     df_price[partner_number] = df_price[full_sku].map(df_map, na_action=None)
-    df_price.to_csv(csv_priceout)
-    return df_price
+    df_pn = df_price.partner_number
+    df = df_price.drop('partner_number', axis=1)
+    df.insert(0, 'partner_number', df_pn)
+    df.to_csv(csv_priceout,index=False)
+
+    return df
 
 def get_cookies(country):
 
@@ -231,9 +235,10 @@ def not_bot(new_url, cookie_pool, country, lock):
 
 def get_info(sku, c_sku, new_url, cookie_pool, country, lock):
     sp, soup = not_bot(new_url, cookie_pool, country, lock)
-
+    # title = sp.find_all(
+    #     'h1', class_="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor")
     title = sp.find_all(
-        'h1', class_="pl-Heading pl-Heading--pageTitle pl-Box--defaultColor")
+        'h1', attrs = {"data-hb-id": "Heading"})
     title = title[0].get_text()
     rating = sp.find_all(
         'span', class_="ProductRatingNumberWithCount-rating")
@@ -259,11 +264,15 @@ def get_all_sku(sku, table1, cookie_pool, country, lock):
     soup, sp = not_bot('https://www.wayfair.' + com + '/keyword.php?keyword=' +
                        sku[0], cookie_pool=cookie_pool, country=country, lock=lock)
     text = soup.find_all('script', type='text/javascript')
-    if "application" in json.loads(text[-1].string[29:-1]):
-        application = json.loads(text[-1].string[29:-1])["application"]
+    global false, null, true
+    false = null = true = ''
+    print(text[-1])
+    js = json.loads(text[-1].string[29:-1])
+
+    if "application" in js:
+        application = js["application"]
     else:
-        application = json.loads(
-            text[-1].string[29:-1])["temp-application"]
+        application = js["temp-application"]
     prop = application["props"]
     try:
         flagServiceFlagData = prop["mainCarousel"]["flagServiceFlagData"]
@@ -330,7 +339,7 @@ def process(sku, table1, dict1, lock, cookie_pool):
             sku, table1, cookie_pool, dict1['country'], lock)
     except BaseException as e:
         traceback.print_exc()
-        print(e)
+        # print(e)
         c_sku = '-'
         is_out_of_stock = '-'
         title = '-'
@@ -347,7 +356,8 @@ def process(sku, table1, dict1, lock, cookie_pool):
 
 
 if __name__ == '__main__':
-    country_list = ["US", "CA"]
+    # country_list = ["US", "CA"]
+    country_list = ["CA"]
     s = time()
     for country in country_list:
         proxy = '221.131.141.243:9091'

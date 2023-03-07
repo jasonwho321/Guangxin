@@ -1,5 +1,6 @@
 # coding:utf-8
-
+import os
+from apscheduler.schedulers.blocking import BlockingScheduler
 import requests
 import json
 import base64
@@ -93,9 +94,16 @@ def bot_push_image(key):
     # bot_push(key, webhook_data)
     res = robot(key, webhook_data)
     return None
-
+def wfs():
+    os.system("python Wayfair_Scrapy.py")
 if __name__ == '__main__':
-    msg = "程序运行完毕"
-    bot_push_text(msg)
+    scheduler = BlockingScheduler(timezone="Asia/Shanghai")
+    scheduler.add_job(wfs, 'cron', hour=0, minute=0)
+    try:
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        pass
+
+
     # bot_push_text("23214d5d-a5af-4be3-b8f2-d8ca154e0b57", msg2, mobile_list2)
     # bot_push_image("23214d5d-a5af-4be3-b8f2-d8ca154e0b57")
