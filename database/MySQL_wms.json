@@ -1,0 +1,7 @@
+{
+    "server": "139.9.2.214:3306",
+    "database": "dataaccess",
+    "user": "readOnly",
+    "password": "X1;a2Cs3!MmP1zc",
+    "driver_path": "/usr/local/mysql-connector-odbc-8.0.27-macos11-x86-64bit/lib/libmyodbc8a.so"
+}

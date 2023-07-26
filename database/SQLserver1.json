@@ -1,0 +1,7 @@
+{
+    "server": "mysql.mapeilin.com",
+    "database": "39F",
+    "user": "john",
+    "password": "Hu930117",
+    "driver_path": "/Library/simba/sqlserverodbc/lib/libsqlserverodbc_sbu.dylib"
+}
