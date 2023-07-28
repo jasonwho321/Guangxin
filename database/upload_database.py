@@ -1,3 +1,5 @@
+import random
+
 from requests.cookies import cookiejar_from_dict
 import time
 import io
@@ -10,15 +12,68 @@ import json
 import requests
 from base import bot_push_text
 from datetime import datetime, timedelta,date
+from base import get_system_path
+# 写一个随机生成ua的函数
+def ua_generator():
+    user_agent_list = [
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:34.0) Gecko/20100101 Firefox/34.0",
+        "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0",
+        "Mozilla/5.0 (X11; U; Linux x86_64; de; rv:1.9a8) Gecko/2007100600 Firefox/1.0 (Swiftfox)",
+        "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.21pre) Gecko/20110101 Firefox/3.6.21pre",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0",
+        "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:46.0) Gecko/20100101 Firefox/46.0",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0",
+        "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:44.0) Gecko/20100101 Firefox/44.0",
+        "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0",
+        "Mozilla/5.0 (Windows NT 6.1; rv:43.0) Gecko/20100101 Firefox/43.0",
+        "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0",
+        "Mozilla/5.0 (Windows NT 6.3; rv:43.0) Gecko/20100101 Firefox/43.0",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0"]
+    return random.choice(user_agent_list)
+
+def vartoflo(df,table_name):
+    server = config_data['server']
+    database = config_data['database']
+    user = config_data['user']
+    password = config_data['password']
+    # 创建数据库连接字符串
+    driver_path =config_data['driver_path']
+    conn_str = (
+        f"Driver={{{driver_path}}};"
+        f"Server={server};"
+        f"Database={database};"
+        f"UID={user};"
+        f"PWD={password};"
+    )
+
+    # 创建SQLAlchemy引擎
+    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={conn_str}")
+
+    # 查询所有float类型的列
+    query = f"""
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_name = '{table_name}' AND data_type = 'float'
+    """
+    float_columns = pd.read_sql(query, engine)
+
+    # 然后，你可以在DataFrame中找到这些列，并转换它们的类型
+    for column in float_columns['column_name']:
+        if column in df.columns:
+            df[column] = pd.to_numeric(df[column], errors='coerce')
+    return df
 def read_config(config_file_path):
     with open(config_file_path, 'r') as f:
         config_data = json.load(f)
     return config_data
 # 读取配置文件
-config_file_path = '/Users/huzhang/PycharmProjects/Guangxin/database/SQLserver.json'  # 根据实际情况调整路径
+config_file_path = get_system_path('SQLserver')  # 根据实际情况调整路径
 config_data = read_config(config_file_path)
 
-def get_servertoken(config_file_path = '/Users/huzhang/PycharmProjects/Guangxin/config_file/HIB_login_Airy.json'):
+def get_servertoken(config_file_path = get_system_path('airy_hib_account')):
       # 根据实际情况调整路径
     config_data = read_config(config_file_path)
     url = "https://sso.houseinbox.com/authorize/sso/doLogin"
@@ -394,9 +449,12 @@ def upload_cg_ful():
     df_ful_us.columns = df_ful_us.columns.map(lambda x: x.replace(' (USD)', ''))
     df_ful_ca.columns = df_ful_ca.columns.map(lambda x: x.replace(' (CAD)', ''))
 
+
     df_ful = pd.concat([df_ful_us,df_ful_ca],ignore_index=True)
     df_trans = pd.concat([df_trans_us,df_trans_ca],ignore_index=True)
-
+    df_ful = vartoflo(df_ful,table_name_ful)
+    df_trans = vartoflo(df_trans, table_name_trans)
+    df_mer = df_mer.drop(columns=['discounts', 'taxes'])
     upload_to_sql_server(df_ful, table_name_ful, timestamp_column_ful,schema=schema,if_exists = 'append_no_duplicates',is_time=False)
     upload_to_sql_server(df_trans, table_name_trans, timestamp_column_trans,schema=schema,if_exists = 'append_no_duplicates',is_time=False)
     upload_to_sql_server(df_media, table_name_media, timestamp_column_media,schema=schema,if_exists = 'append_no_duplicates',is_time=False)

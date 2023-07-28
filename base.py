@@ -1,5 +1,8 @@
 # coding:utf-8
 import json
+import os
+import platform
+import subprocess
 from urllib.parse import quote_plus
 
 import requests
@@ -8,6 +11,38 @@ import hashlib
 from sqlalchemy import create_engine
 from typing import Any, Dict
 from dateutil.parser import parse
+from file_path_config import paths
+def get_windows_version():
+    try:
+        output = subprocess.check_output("wmic os get caption", shell=True).decode()
+        return output.split('\n')[1].strip()  # 第二行是操作系统名称
+    except:
+        return None
+def get_system_path(param_name):
+    # 使用方式：
+    # file_path = get_system_path('executable_path')
+    # 获取当前运行的系统
+    system = platform.system()
+
+    path = None
+    if system == 'Windows':
+        windows_version = get_windows_version()
+        if 'Windows 10' in windows_version:
+            path = paths[system]['Windows 10'].get(param_name)
+        elif 'Server 2019' in windows_version:
+            path = paths[system]['Server 2019'].get(param_name)
+        else:
+            print(f'Unsupported Windows version: {windows_version}')
+            os.waitstatus_to_exitcode(1)
+    elif system in ['Linux', 'Darwin']:  # Linux or MacOS
+        path = paths[system].get(param_name)
+
+    if path is None:
+        print(f'Unsupported parameter: {param_name}')
+        os.waitstatus_to_exitcode(1)
+
+    return path
+
 
 def convert_date(date_string):
     parsed_date = parse(date_string)

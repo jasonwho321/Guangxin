@@ -5,13 +5,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from selenium.webdriver.edge.service import Service
-
+import platform
+import os
+from base import get_system_path
 button_text_xpath = "/html/body/div[2]/div/div/div/div/div[2]/div[1]/div/div/div/div[2]/div[1]/div[1]/button/div[1]"
-executable_path='/Users/huzhang/msedgedriver'
-binary_location = '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
-password_file = '/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/Wayfair账号密码.xlsx'
+webdriver_executable_path=get_system_path('webdriver_executable_path')
+binary_location = get_system_path('binary_location')
+password_file = get_system_path('password_file')
 def init_driver():
-    webdriver_service = Service(executable_path=executable_path)
+    webdriver_service = Service(executable_path=webdriver_executable_path)
     options = webdriver.EdgeOptions()
     options.binary_location = binary_location
     driver = webdriver.Edge(options=options,service=webdriver_service)
