@@ -16,10 +16,12 @@ import subprocess
 
 def get_windows_version():
     try:
-        output = subprocess.check_output("wmic os get caption", shell=True).decode()
+        output = subprocess.check_output("wmic os get caption", shell=True).decode('gb18030')
         return output.split('\n')[1].strip()  # 第二行是操作系统名称
-    except:
+    except Exception as e:
+        print(f'Error when getting windows version: {e}')
         return None
+
 
 
 
