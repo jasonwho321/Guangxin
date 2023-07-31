@@ -5,8 +5,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from selenium.webdriver.edge.service import Service
-import platform
-import os
 from base import get_system_path
 button_text_xpath = "/html/body/div[2]/div/div/div/div/div[2]/div[1]/div/div/div/div[2]/div[1]/div[1]/button/div[1]"
 webdriver_executable_path=get_system_path('webdriver_executable_path')

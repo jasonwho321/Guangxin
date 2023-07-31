@@ -1,5 +1,4 @@
 import random
-
 from requests.cookies import cookiejar_from_dict
 import time
 import io
@@ -409,15 +408,15 @@ def upload_cg_inbound():
     table_name = 'CG_Inbound_Records'
     schema = "Transport"
     timestamp_column = 'Original Order Id'
-    df = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG入库记录_US.csv')
+    df = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG入库记录_US.csv'))
     upload_to_sql_server(df, table_name, timestamp_column,schema=schema,if_exists='append_no_duplicates',is_time=False)
 
 def upload_cg_inv():
     table_name = 'CG_Inventory_Records'
     schema = "Inv_Mgmt"
     timestamp_column = 'upload_date'
-    df_us = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_US.csv')
-    df_ca = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_CA.csv')
+    df_us = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_US.csv'))
+    df_ca = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_CA.csv'))
     df_us['Country'] = 'US'
     df_ca['Country'] = 'CA'
 
@@ -438,12 +437,12 @@ def upload_cg_ful():
     timestamp_column_mer = 'createDate'
     timestamp_column_trans = 'Charge Date'
 
-    df_ful_us = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US.csv')
-    df_ful_ca = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA.csv')
-    df_trans_us = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US.csv')
-    df_trans_ca = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA.csv')
-    df_media = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Media.csv')
-    df_mer = pd.read_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Merchandising.csv')
+    df_ful_us = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US.csv'))
+    df_ful_ca = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA.csv'))
+    df_trans_us = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US.csv'))
+    df_trans_ca = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA.csv'))
+    df_media = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Media.csv'))
+    df_mer = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Merchandising.csv'))
 
     # 使用rename方法和lambda函数去掉 '(USD)'
     df_ful_us.columns = df_ful_us.columns.map(lambda x: x.replace(' (USD)', ''))

@@ -1,8 +1,5 @@
 # coding:utf-8
 import json
-import os
-import platform
-import subprocess
 from urllib.parse import quote_plus
 
 import requests
@@ -12,36 +9,72 @@ from sqlalchemy import create_engine
 from typing import Any, Dict
 from dateutil.parser import parse
 from file_path_config import paths
+import os
+import platform
+import subprocess
+
+
 def get_windows_version():
     try:
         output = subprocess.check_output("wmic os get caption", shell=True).decode()
         return output.split('\n')[1].strip()  # 第二行是操作系统名称
     except:
         return None
-def get_system_path(param_name):
-    # 使用方式：
-    # file_path = get_system_path('executable_path')
-    # 获取当前运行的系统
+
+
+
+def get_system_path(path_key, full_path=None):
+    """
+    根据提供的键值和全路径获取在当前系统中的完整路径。
+
+    参数:
+    path_key -- 字典中路径的键值，可选项有 'webdriver_executable_path', 'binary_location', 'SQLserver', 'airy_hib_account', 'password_file'
+    full_path -- 文件在坚果云中的全路径，如果文件不在坚果云中，可以设置为 None，默认值为 None
+
+    返回值:
+    在当前系统中的文件全路径
+    """
     system = platform.system()
 
-    path = None
+    # 根据系统获取用户主目录和坚果云文件夹名称
+    home = None
+    nutstore_folder = None
+    specified_path = None
     if system == 'Windows':
         windows_version = get_windows_version()
         if 'Windows 10' in windows_version:
-            path = paths[system]['Windows 10'].get(param_name)
+            home = paths[system]['Windows 10']['home']
+            nutstore_folder = paths[system]['Windows 10']['nutstore_folder']
+            specified_path = paths[system]['Windows 10'].get(path_key, None)
         elif 'Server 2019' in windows_version:
-            path = paths[system]['Server 2019'].get(param_name)
-        else:
-            print(f'Unsupported Windows version: {windows_version}')
-            os.waitstatus_to_exitcode(1)
+            home = paths[system]['Server 2019']['home']
+            nutstore_folder = paths[system]['Server 2019']['nutstore_folder']
+            specified_path = paths[system]['Server 2019'].get(path_key, None)
     elif system in ['Linux', 'Darwin']:  # Linux or MacOS
-        path = paths[system].get(param_name)
+        home = paths[system]['home']
+        nutstore_folder = paths[system]['nutstore_folder']
+        specified_path = paths[system].get(path_key, None)
 
-    if path is None:
-        print(f'Unsupported parameter: {param_name}')
-        os.waitstatus_to_exitcode(1)
+    # 如果full_path为None，返回从字典中取得的路径
+    if full_path is None:
+        return specified_path
 
-    return path
+    # 找到坚果云文件夹在完整路径中的位置
+    path_parts = full_path.split('/')
+    nutstore_index = path_parts.index(nutstore_folder) if nutstore_folder in path_parts else -1
+
+    if nutstore_index == -1:
+        print(f'Could not find "{nutstore_folder}" in the provided path.')
+        return None
+
+    # 构造新的路径
+    relative_path = os.path.join(*path_parts[nutstore_index+1:])
+    full_system_path = os.path.join(home, relative_path)
+
+    # 根据系统路径分隔符来替换路径
+    full_system_path = full_system_path.replace('/', os.sep)
+
+    return full_system_path
 
 
 def convert_date(date_string):
@@ -189,7 +222,8 @@ def bot_push_image(key):
 
 
 if __name__ == '__main__':
-    get_engine()
+    print(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/BI小组文件存档/账号信息.xlsx'))
+    print(get_system_path('webdriver_executable_path'))
     # msg = "程序运行完毕"
     # bot_push_text(msg)
     # bot_push_text("23214d5d-a5af-4be3-b8f2-d8ca154e0b57", msg2, mobile_list2)

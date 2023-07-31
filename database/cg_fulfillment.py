@@ -1,7 +1,6 @@
 import json
 import glob
 import requests
-import os
 from base import bot_push_text
 from scrapy.log_in import *
 
@@ -11,10 +10,10 @@ createDateRange_to = "2023-07-23"
 id_ca = 35722
 id_us = 44345
 
-ful_folder_path_ca = "/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA"
-tran_folder_path_ca = "/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA"
-ful_folder_path_us = "/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US"
-tran_folder_path_us = "/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US"
+ful_folder_path_ca = get_system_path("/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA")
+tran_folder_path_ca = get_system_path("/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA")
+ful_folder_path_us = get_system_path("/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US")
+tran_folder_path_us = get_system_path("/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US")
 
 first_button_xpath = "/html/body/div[2]/div/div/div/div/div[2]/div[1]/div/div/div/div[2]/div[1]/div/button"
 second_button_xpath_ca = "/html/body/div[2]/div/div/div/div/div[2]/div[1]/div/div/div/div[2]/div[1]/div[2]/div/ul/li[2]/button"
@@ -60,11 +59,11 @@ def download_file(country,cookies):
     json_response, headers = get_download_list(country,cookies)
     print(json_response)
     if country == 'US':
-        transportation_foldername = '/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US'
-        fulfillment_foldername = '/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US'
+        transportation_foldername = get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US')
+        fulfillment_foldername = get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US')
     else:
-        transportation_foldername = '/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA'
-        fulfillment_foldername = '/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA'
+        transportation_foldername = get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA')
+        fulfillment_foldername = get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA')
 
     # 创建存储文件的文件夹
     os.makedirs(transportation_foldername, exist_ok=True)
@@ -112,8 +111,8 @@ def download_file(country,cookies):
                     df_mer = pd.concat([df_mer, new_row], ignore_index=True)
 
     # 保存数据帧为csv
-    df.to_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Media.csv', index=False)
-    df_mer.to_csv('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Merchandising.csv', index=False)
+    df.to_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Media.csv'), index=False)
+    df_mer.to_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Merchandising.csv'), index=False)
 
 
 def concat_csv_to_csv(folder_path, filename):
