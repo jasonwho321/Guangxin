@@ -40,41 +40,49 @@ def get_system_path(path_key, full_path=None):
 
     # 根据系统获取用户主目录和坚果云文件夹名称
     home = None
-    nutstore_folder = None
     specified_path = None
     if system == 'Windows':
         windows_version = get_windows_version()
         if 'Windows 10' in windows_version:
             home = paths[system]['Windows 10']['home']
-            nutstore_folder = paths[system]['Windows 10']['nutstore_folder']
             specified_path = paths[system]['Windows 10'].get(path_key, None)
         elif 'Server 2019' in windows_version:
             home = paths[system]['Server 2019']['home']
-            nutstore_folder = paths[system]['Server 2019']['nutstore_folder']
             specified_path = paths[system]['Server 2019'].get(path_key, None)
     elif system in ['Linux', 'Darwin']:  # Linux or MacOS
         home = paths[system]['home']
-        nutstore_folder = paths[system]['nutstore_folder']
         specified_path = paths[system].get(path_key, None)
 
     # 如果full_path为None，返回从字典中取得的路径
     if full_path is None:
         return specified_path
 
+    # 确定输入路径的系统类型
+    if '/' in full_path:
+        input_system = 'Darwin'  # MacOS
+    elif '\\' in full_path:
+        input_system = 'Windows'
+
+    # 根据输入路径的系统类型获取坚果云文件夹名称
+    if input_system == 'Windows':
+        input_nutstore_folder = paths[input_system]['Windows 10']['nutstore_folder']
+    elif input_system == 'Darwin':
+        input_nutstore_folder = paths[input_system]['nutstore_folder']
+
     # 找到坚果云文件夹在完整路径中的位置
-    path_parts = full_path.split('/')
-    nutstore_index = path_parts.index(nutstore_folder) if nutstore_folder in path_parts else -1
+    input_full_path_parts = full_path.split('/' if input_system == 'Darwin' else '\\')
+    nutstore_index = input_full_path_parts.index(input_nutstore_folder) if input_nutstore_folder in input_full_path_parts else -1
 
     if nutstore_index == -1:
-        print(f'Could not find "{nutstore_folder}" in the provided path.')
+        print(f'Could not find "{input_nutstore_folder}" in the provided path.')
         return None
 
     # 构造新的路径
-    relative_path = os.path.join(*path_parts[nutstore_index+1:])
+    relative_path = os.path.join(*input_full_path_parts[nutstore_index+1:])
     full_system_path = os.path.join(home, relative_path)
 
     # 根据系统路径分隔符来替换路径
-    full_system_path = full_system_path.replace('/', os.sep)
+    full_system_path = full_system_path.replace('/', os.sep).replace('\\', os.sep)
 
     return full_system_path
 
@@ -224,7 +232,7 @@ def bot_push_image(key):
 
 
 if __name__ == '__main__':
-    print(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/BI小组文件存档/账号信息.xlsx'))
+    print(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US'))
     print(get_system_path('webdriver_executable_path'))
     # msg = "程序运行完毕"
     # bot_push_text(msg)
