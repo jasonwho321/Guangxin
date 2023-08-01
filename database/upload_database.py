@@ -232,6 +232,7 @@ def get_servertoken(config_file_path=get_system_path('airy_hib_account')):
             print("Error retrieving the URL.")
     else:
         print("请求失败")
+
 def download_upload_transportInfo():
     table_name = 'China_WMS'
     schema = 'Transport'

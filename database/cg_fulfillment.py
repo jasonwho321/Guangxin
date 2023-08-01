@@ -4,8 +4,18 @@ import requests
 from base import bot_push_text
 from scrapy.log_in import *
 import os
-createDateRange_from = "2023-07-24"
-createDateRange_to = "2023-07-30"
+from datetime import datetime, timedelta
+from upload_database import upload_cg_ful
+# 获取当前日期
+now = datetime.now()
+
+# 获取两周前的日期
+createDateRange_from = now - timedelta(weeks=2)
+# 将日期格式化为字符串
+createDateRange_from = createDateRange_from.strftime("%Y-%m-%d")
+
+# 获取当前日期（数据下载结束日期）
+createDateRange_to = now.strftime("%Y-%m-%d")
 
 id_ca = 35722
 id_us = 44345
@@ -166,5 +176,6 @@ def main():
         process_data(driver, wait, 'US', tran_folder_path_us, ful_folder_path_us, second_button_xpath_us)
 
     driver.quit()
+    upload_cg_ful()
 if __name__ == '__main__':
     main()
