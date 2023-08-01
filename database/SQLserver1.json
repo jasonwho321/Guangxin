@@ -1,7 +1,7 @@
 {
-    "server": "mysql.mapeilin.com",
+    "server": "localhost",
     "database": "39F",
     "user": "john",
     "password": "Hu930117",
-    "driver_path": "/Library/simba/sqlserverodbc/lib/libsqlserverodbc_sbu.dylib"
+    "driver_path": "ODBC Driver 17 for SQL Server"
 }

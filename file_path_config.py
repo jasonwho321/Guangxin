@@ -10,11 +10,11 @@ paths = {
             'nutstore_folder': '1'
         },
         'Server 2019': {
-            'webdriver_executable_path': r'C:\path\to\msedgedriver.exe',
+            'webdriver_executable_path': r'C:\Users\Administrator\Downloads\msedgedriver.exe',
             'binary_location': r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
-            'SQLserver': r'D:\pythonproject\Guangxin\database\SQLserver.json',
-            'password_file': r'C:\path\to\password.xlsx',
-            'home': 'C:\\Users\\Administrator\\Nutstore\\1',
+            'SQLserver': r'D:\Project\Guangxin\database\SQLserver1.json',
+            'password_file': r'C:\Users\Administrator\Nutstore\1\我的坚果云\S数据分析\Wayfair账号密码.xlsx',
+            'home': r'C:\Users\Administrator\Nutstore\1',
             'nutstore_folder': '1'
         }
     },

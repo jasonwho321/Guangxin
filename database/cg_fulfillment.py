@@ -4,8 +4,8 @@ import requests
 from base import bot_push_text
 from scrapy.log_in import *
 import os
-createDateRange_from = "2023-05-23"
-createDateRange_to = "2023-07-23"
+createDateRange_from = "2023-07-24"
+createDateRange_to = "2023-07-30"
 
 id_ca = 35722
 id_us = 44345

@@ -1,4 +1,7 @@
 import random
+import platform
+from urllib.parse import quote_plus
+
 from requests.cookies import cookiejar_from_dict
 import time
 import io
@@ -12,6 +15,8 @@ import requests
 from base import bot_push_text
 from datetime import datetime, timedelta,date
 from base import get_system_path
+# 读取配置文件
+config_file_path = get_system_path('SQLserver')  # 根据实际情况调整路径
 # 写一个随机生成ua的函数
 def ua_generator():
     user_agent_list = [
@@ -34,14 +39,26 @@ def ua_generator():
     return random.choice(user_agent_list)
 
 def vartoflo(df,table_name):
+    # 判断操作系统类型
+    os_type = platform.system()
+    # 从配置文件中获取所需的值
     server = config_data['server']
     database = config_data['database']
     user = config_data['user']
     password = config_data['password']
+
     # 创建数据库连接字符串
     driver_path =config_data['driver_path']
+    if os_type == 'Windows':
+        driver_str = f"Driver={driver_path};"
+    elif os_type == 'Darwin':  # MacOS的内核名称为Darwin
+        driver_str = f"Driver={{{driver_path}}};"
+    else:
+        print("Unsupported OS type.")
+        return
+
     conn_str = (
-        f"Driver={{{driver_path}}};"
+        f"{driver_str}"
         f"Server={server};"
         f"Database={database};"
         f"UID={user};"
@@ -49,7 +66,7 @@ def vartoflo(df,table_name):
     )
 
     # 创建SQLAlchemy引擎
-    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={conn_str}")
+    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={quote_plus(conn_str)}")
 
     # 查询所有float类型的列
     query = f"""
@@ -68,12 +85,80 @@ def read_config(config_file_path):
     with open(config_file_path, 'r') as f:
         config_data = json.load(f)
     return config_data
-# 读取配置文件
-config_file_path = get_system_path('SQLserver')  # 根据实际情况调整路径
+
 config_data = read_config(config_file_path)
 
-def get_servertoken(config_file_path = get_system_path('airy_hib_account')):
-      # 根据实际情况调整路径
+def upload_to_sql_server(df, table_name, timestamp_column,schema, if_exists='replace',is_time=True):
+    # 可以选择'replace'或'append_no_duplicates'
+    # 判断操作系统类型
+    os_type = platform.system()
+    # 从配置文件中获取所需的值
+    server = config_data['server']
+    database = config_data['database']
+    user = config_data['user']
+    password = config_data['password']
+
+    # 创建数据库连接字符串
+    driver_path =config_data['driver_path']
+    if os_type == 'Windows':
+        driver_str = f"Driver={driver_path};"
+    elif os_type == 'Darwin':  # MacOS的内核名称为Darwin
+        driver_str = f"Driver={{{driver_path}}};"
+    else:
+        print("Unsupported OS type.")
+        return
+
+    conn_str = (
+        f"{driver_str}"
+        f"Server={server};"
+        f"Database={database};"
+        f"UID={user};"
+        f"PWD={password};"
+    )
+
+    # 创建SQLAlchemy引擎
+    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={quote_plus(conn_str)}")
+
+    # 连接到数据库
+    conn = pyodbc.connect(conn_str)
+    if if_exists == 'replace':
+        df.to_sql(table_name, engine, if_exists="replace", index=False,schema=schema)
+        print(f"Data uploaded to table '{table_name}' in database '{database}' on server '{server}'.")
+    elif if_exists == 'append_no_duplicates':
+        unique_str_values = df[timestamp_column].unique()
+
+        if len(unique_str_values) > 0:
+            if is_time:
+                # 获取上传表格中的时间范围
+                min_timestamp = df[timestamp_column].min()
+                max_timestamp = df[timestamp_column].max()
+
+                # 删除与上传表格中的时间范围重叠的数据
+                query = f"DELETE FROM {schema}.{table_name} WHERE {timestamp_column} >= '{min_timestamp}' AND {timestamp_column} <= '{max_timestamp}'"
+                conn.execute(query)
+                conn.commit()
+            else:
+                unique_str_values = df[timestamp_column].unique()
+                # 将这些值转换为适当的 SQL 查询格式
+                formatted_str_values = ', '.join([f"'{value}'" for value in unique_str_values])
+
+                # 删除与上传表格中的字符串值匹配的数据
+                delete_query = f"DELETE FROM {schema}.{table_name} WHERE [{timestamp_column}] IN ({formatted_str_values})"
+                conn.execute(delete_query)
+                conn.commit()
+
+        # 将新数据追加到数据库表格中
+        df.to_sql(table_name, engine, if_exists="append", index=False,schema=schema)
+        print(f"Data uploaded to table '{table_name}' in database '{database}' on server '{server}' without duplicates.")
+    else:
+        print(f"Error: Invalid 'if_exists' value. Allowed values are 'replace' and 'append_no_duplicates'.")
+
+    # 关闭数据库连接
+    conn.close()
+
+
+def get_servertoken(config_file_path=get_system_path('airy_hib_account')):
+    # 根据实际情况调整路径
     config_data = read_config(config_file_path)
     url = "https://sso.houseinbox.com/authorize/sso/doLogin"
 
@@ -81,7 +166,7 @@ def get_servertoken(config_file_path = get_system_path('airy_hib_account')):
     username = config_data['username']
     password = config_data['password']
     cook_userNumber = config_data['cook_userNumber']
-    cook_userid= config_data['cook_userid']
+    cook_userid = config_data['cook_userid']
 
     # 为了安全起见，建议对密码进行散列处理
     import hashlib
@@ -119,7 +204,8 @@ def get_servertoken(config_file_path = get_system_path('airy_hib_account')):
                    'cook_userName': username, 'cook_userNumber': cook_userNumber,
                    'cook_serviceToken': json_response['serviceToken'],
                    'cook_loginTime': str(loginTime), 'cook_random': json_response['random']}
-        url = 'https://sso.doccenter.net/authorize/sso/crossSiteCookie?targetDomain=doccenter.net&userId={}&random={}'.format(cook_userid,json_response['random'])
+        url = 'https://sso.doccenter.net/authorize/sso/crossSiteCookie?targetDomain=doccenter.net&userId={}&random={}'.format(
+            cook_userid, json_response['random'])
         cookies = cookiejar_from_dict(cookies)
         headers = {
             'accept': '*/*',
@@ -141,64 +227,11 @@ def get_servertoken(config_file_path = get_system_path('airy_hib_account')):
             # 提取 cook_serviceToken
             cookies = response.cookies
             service_token = cookies.get("cook_serviceToken")
-            return [json_response['serviceToken'],service_token]
+            return [json_response['serviceToken'], service_token]
         else:
             print("Error retrieving the URL.")
     else:
         print("请求失败")
-def upload_to_sql_server(df, table_name, timestamp_column,schema, if_exists='replace',is_time=True):
-    # 可以选择'replace'或'append_no_duplicates'
-    # 从配置文件中获取所需的值
-    server = config_data['server']
-    database = config_data['database']
-    user = config_data['user']
-    password = config_data['password']
-    # 创建数据库连接字符串
-    driver_path =config_data['driver_path']
-    conn_str = (
-        f"Driver={{{driver_path}}};"
-        f"Server={server};"
-        f"Database={database};"
-        f"UID={user};"
-        f"PWD={password};"
-    )
-
-    # 创建SQLAlchemy引擎
-    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={conn_str}")
-
-    # 连接到数据库
-    conn = pyodbc.connect(conn_str)
-    if if_exists == 'replace':
-        df.to_sql(table_name, engine, if_exists="replace", index=False,schema=schema)
-        print(f"Data uploaded to table '{table_name}' in database '{database}' on server '{server}'.")
-    elif if_exists == 'append_no_duplicates':
-        if is_time:
-            # 获取上传表格中的时间范围
-            min_timestamp = df[timestamp_column].min()
-            max_timestamp = df[timestamp_column].max()
-
-            # 删除与上传表格中的时间范围重叠的数据
-            query = f"DELETE FROM {schema}.{table_name} WHERE {timestamp_column} >= '{min_timestamp}' AND {timestamp_column} <= '{max_timestamp}'"
-            conn.execute(query)
-            conn.commit()
-        else:
-            unique_str_values = df[timestamp_column].unique()
-            # 将这些值转换为适当的 SQL 查询格式
-            formatted_str_values = ', '.join([f"'{value}'" for value in unique_str_values])
-
-            # 删除与上传表格中的字符串值匹配的数据
-            delete_query = f"DELETE FROM {schema}.{table_name} WHERE [{timestamp_column}] IN ({formatted_str_values})"
-            conn.execute(delete_query)
-            conn.commit()
-
-        # 将新数据追加到数据库表格中
-        df.to_sql(table_name, engine, if_exists="append", index=False,schema=schema)
-        print(f"Data uploaded to table '{table_name}' in database '{database}' on server '{server}' without duplicates.")
-    else:
-        print(f"Error: Invalid 'if_exists' value. Allowed values are 'replace' and 'append_no_duplicates'.")
-
-    # 关闭数据库连接
-    conn.close()
 def download_upload_transportInfo():
     table_name = 'China_WMS'
     schema = 'Transport'
@@ -408,15 +441,15 @@ def upload_cg_inbound():
     table_name = 'CG_Inbound_Records'
     schema = "Transport"
     timestamp_column = 'Original Order Id'
-    df = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG入库记录_US.csv'))
+    df = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG入库记录_US.csv'))
     upload_to_sql_server(df, table_name, timestamp_column,schema=schema,if_exists='append_no_duplicates',is_time=False)
 
 def upload_cg_inv():
     table_name = 'CG_Inventory_Records'
     schema = "Inv_Mgmt"
     timestamp_column = 'upload_date'
-    df_us = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_US.csv'))
-    df_ca = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_CA.csv'))
+    df_us = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_US.csv'))
+    df_ca = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG库存_CA.csv'))
     df_us['Country'] = 'US'
     df_ca['Country'] = 'CA'
 
@@ -437,12 +470,12 @@ def upload_cg_ful():
     timestamp_column_mer = 'createDate'
     timestamp_column_trans = 'Charge Date'
 
-    df_ful_us = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US.csv'))
-    df_ful_ca = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA.csv'))
-    df_trans_us = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US.csv'))
-    df_trans_ca = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA.csv'))
-    df_media = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Media.csv'))
-    df_mer = pd.read_csv(get_system_path('/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Merchandising.csv'))
+    df_ful_us = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_US.csv'))
+    df_ful_ca = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA.csv'))
+    df_trans_us = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_US.csv'))
+    df_trans_ca = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA.csv'))
+    df_media = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Media.csv'))
+    df_mer = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/Merchandising.csv'))
 
     # 使用rename方法和lambda函数去掉 '(USD)'
     df_ful_us.columns = df_ful_us.columns.map(lambda x: x.replace(' (USD)', ''))
@@ -453,7 +486,10 @@ def upload_cg_ful():
     df_trans = pd.concat([df_trans_us,df_trans_ca],ignore_index=True)
     df_ful = vartoflo(df_ful,table_name_ful)
     df_trans = vartoflo(df_trans, table_name_trans)
-    df_mer = df_mer.drop(columns=['discounts', 'taxes'])
+    try:
+        df_mer = df_mer.drop(columns=['discounts', 'taxes'])
+    except:
+        pass
     upload_to_sql_server(df_ful, table_name_ful, timestamp_column_ful,schema=schema,if_exists = 'append_no_duplicates',is_time=False)
     upload_to_sql_server(df_trans, table_name_trans, timestamp_column_trans,schema=schema,if_exists = 'append_no_duplicates',is_time=False)
     upload_to_sql_server(df_media, table_name_media, timestamp_column_media,schema=schema,if_exists = 'append_no_duplicates',is_time=False)
