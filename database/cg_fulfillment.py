@@ -1,16 +1,18 @@
 import json
 import glob
 import requests
-from base import bot_push_text
+from base import bot_push_text,send_errors_to_bot
 from scrapy.log_in import *
 import os
 from datetime import datetime, timedelta
-from upload_database import upload_cg_ful
+from database.upload_database import upload_cg_ful
+import shutil
+from time import sleep
 # 获取当前日期
 now = datetime.now()
 
 # 获取两周前的日期
-createDateRange_from = now - timedelta(weeks=2)
+createDateRange_from = now - timedelta(weeks=8)
 # 将日期格式化为字符串
 createDateRange_from = createDateRange_from.strftime("%Y-%m-%d")
 
@@ -75,9 +77,18 @@ def download_file(country,cookies):
         transportation_foldername = get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Transportation_CA')
         fulfillment_foldername = get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/水单核对/CG_Fulfillment_CA')
 
-    # 创建存储文件的文件夹
-    os.makedirs(transportation_foldername, exist_ok=True)
-    os.makedirs(fulfillment_foldername, exist_ok=True)
+    # 检查文件夹是否存在，如果存在则删除
+    if os.path.exists(transportation_foldername):
+        shutil.rmtree(transportation_foldername)
+
+    # 创建新的文件夹
+    os.makedirs(transportation_foldername)
+
+    # 对于第二个文件夹进行同样的操作
+    if os.path.exists(fulfillment_foldername):
+        shutil.rmtree(fulfillment_foldername)
+
+    os.makedirs(fulfillment_foldername)
 
     # 假设您的JSON数据存储在一个名为json_data的字典中
     json_data = json_response['invoices']
@@ -88,6 +99,7 @@ def download_file(country,cookies):
 
     # 检查每个数据点的revenueSource，并执行相应的操作
     for data in json_data:
+        sleep(5)
         if data['revenueSource'] == 'SPONSORED_PRODUCTS':
             new_row = pd.DataFrame([{
                 'createDate': data['createDate'].split(' ')[0],
@@ -137,16 +149,20 @@ def concat_csv_to_csv(folder_path, filename):
         df = pd.read_csv(file, index_col=None, header=0, low_memory=False)
         df_list.append(df)
 
-    # 将所有数据框架连接到一个数据框架
-    concatenated_df = pd.concat(df_list, axis=0, ignore_index=True)
+    if df_list:
+        concatenated_df = pd.concat(df_list, axis=0, ignore_index=True)
+        # 创建保存的csv文件路径
+        csv_file_path = os.path.join(os.path.dirname(folder_path), filename + ".csv")
 
-    # 创建保存的csv文件路径
-    csv_file_path = os.path.join(os.path.dirname(folder_path), filename + ".csv")
+        # 将合并后的数据框架保存为csv文件
+        concatenated_df.to_csv(csv_file_path, index=False)
 
-    # 将合并后的数据框架保存为csv文件
-    concatenated_df.to_csv(csv_file_path, index=False)
+        print(f"Saved combined data to {csv_file_path}")
+    else:
+        print("No CSV files found in the directory.")
 
-    print(f"Saved combined data to {csv_file_path}")
+
+
 
 
 def process_data(driver, wait, country, tran_folder_path, ful_folder_path, second_button_xpath):
@@ -158,7 +174,7 @@ def process_data(driver, wait, country, tran_folder_path, ful_folder_path, secon
     wait.until(EC.visibility_of_element_located((By.XPATH, second_button_xpath)))
     get_and_click_button(driver, wait, second_button_xpath)
 
-
+@ send_errors_to_bot
 def main():
     driver, button_text, wait = start()
 
