@@ -13,6 +13,18 @@ import os
 import platform
 import subprocess
 
+def send_errors_to_bot(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            program_name = os.path.basename(__file__)
+            error_message = f"程序 {program_name} 发生错误: {str(e)}"
+            bot_push_text(error_message)  # 发送错误信息
+            raise  # 重新抛出异常
+    return wrapper
+
+
 
 def get_windows_version():
     try:
