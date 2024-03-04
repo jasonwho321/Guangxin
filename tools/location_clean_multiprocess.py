@@ -1,9 +1,12 @@
+import os
+import chardet
+import numpy as np
 from location_clean import *
 import openai
 import csv
 import pandas as pd
 def gpt_clean(input_file='/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/输出 2.csv'):
-    openai.api_key = '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'
+    openai.api_key = ''
 
     # 读取城市名
     city_data = []
@@ -78,19 +81,25 @@ def gpt_clean(input_file='/Users/huzhang/Documents/我的 Tableau Prep 存储库
 
 def load_checkpoint():
     try:
-        with open('../backup_data1.pkl', 'rb') as f:
+        with open('checkpoint.pkl', 'rb') as f:
             return pickle.load(f)
     except FileNotFoundError:
         return None
 
+def save_checkpoint(df):
+    with open('checkpoint.pkl', 'wb') as f:
+        pickle.dump(df, f)
 
 def main():
-    # 尝试从pickle文件中加载数据
-    df = load_checkpoint()
-
+    # # 尝试从pickle文件中加载数据
+    # df = load_checkpoint()
+    df = None
     # 如果pickle文件不存在，从csv文件中读取数据
     if df is None:
-        df = pd.read_csv('/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市1.csv')
+        with open('/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/输出.csv', 'rb') as f:
+            result = chardet.detect(f.read())
+        encoding = result['encoding']
+        df = pd.read_csv('/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/输出.csv', encoding=encoding)
         df['city_name'] = None
         df['full_name'] = None
         df['latitude'] = None
@@ -121,17 +130,81 @@ def main():
                     pickle.dump(df, f)
                 results = []
 
-    # 更新数据框的列
-    city_names, full_names, latitudes, longitudes = zip(*results)
-    df.loc[df['city'].isin(unfinished_cities), ['city_name', 'full_name', 'latitude', 'longitude']] = list(zip(city_names, full_names, latitudes, longitudes))
+    # 逐行更新DataFrame
+    for city, result in zip(unfinished_cities, results):
+        city_name, full_name, latitude, longitude = result
+        df.loc[df['city'] == city, 'city_name'] = city_name
+        df.loc[df['city'] == city, 'full_name'] = full_name
+        df.loc[df['city'] == city, 'latitude'] = latitude
+        df.loc[df['city'] == city, 'longitude'] = longitude
 
     # 再次保存数据到pickle文件（覆盖旧的）
-    with open('../backup_data1.pkl', 'wb') as f:
+    with open('../backup_data.pkl', 'wb') as f:
         pickle.dump(df, f)
 
     # 保存清洗后的数据到csv
-    df.to_csv('/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市1_cleaned.csv', index=False)
+    df.to_csv('/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市1_cleaned.csv', index=False,encoding=encoding)
 
+def main1():
+    # 尝试从pickle文件中加载数据
+    df = load_checkpoint()
+
+    # 检测文件编码
+    with open('/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市_cleaned.csv', 'rb') as f:
+        result = chardet.detect(f.read())
+    encoding = result['encoding']
+
+    # 如果pickle文件不存在，从csv文件中读取数据
+    if df is None:
+        file_path = '/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市_cleaned.csv'
+        df = pd.read_csv(file_path, encoding=encoding)
+    # 如果'state'列不存在，则创建它，并使用NaN填充
+    if 'state' not in df.columns:
+        df['state'] = np.nan
+
+    # 筛选出还没有处理的城市
+    unfinished_cities = df[pd.isna(df['state'])]
+
+    # 使用多进程处理未完成的城市
+    save_frequency = 100  # 设置每处理100条数据就保存一次
+    results = []
+    with Pool(cpu_count()) as pool:
+        for i, result in enumerate(
+                tqdm(pool.imap(get_location_by_coordinates, unfinished_cities.iterrows()),
+                     total=unfinished_cities.shape[0])):
+            results.append(result)
+
+            if (i + 1) % save_frequency == 0:
+                # 找到未完成的索引
+                unfinished_indices = df[pd.isna(df['state'])].index[:save_frequency]
+
+                # 按索引更新
+                for idx, value in zip(unfinished_indices, results[:save_frequency]):
+                    df.loc[idx, 'state'] = value
+
+                save_checkpoint(df)
+                results = results[save_frequency:]
+
+    # 保存剩余结果
+    df.loc[pd.isna(df['state']), 'state'] = results
+
+    # 保存更改后的CSV
+    file_path = '/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市_cleaned.csv'
+    df.to_csv(file_path, index=False, encoding=encoding)
+
+    # 删除checkpoint文件
+    if os.path.exists('checkpoint.pkl'):
+        os.remove('checkpoint.pkl')
 
 if __name__ == '__main__':
-    gpt_clean()
+    main1()
+    # 加载pkl文件到DataFrame
+    # file_path = '../backup_data.pkl'
+    # df = pd.read_pickle(file_path)
+    #
+    # # 指定CSV文件的保存路径和编码
+    # csv_path = '/Users/huzhang/Documents/我的 Tableau Prep 存储库/数据源/城市_cleaned.csv'
+    # encoding = 'utf-8-sig'  # 可以根据你的需求更改编码
+    #
+    # # 保存DataFrame到CSV
+    # df.to_csv(csv_path, index=False, encoding=encoding)

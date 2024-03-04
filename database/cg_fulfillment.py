@@ -1,8 +1,8 @@
 import json
 import glob
 import requests
-from base import bot_push_text,send_errors_to_bot
-from scrapy.log_in import *
+from guangxin_base import bot_push_text,send_errors_to_bot
+from scrapy_file.log_in import *
 import os
 from datetime import datetime, timedelta
 from database.upload_database import upload_cg_ful

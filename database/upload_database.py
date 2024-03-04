@@ -12,9 +12,9 @@ import pyodbc
 from sqlalchemy import create_engine
 import json
 import requests
-from base import bot_push_text
+from guangxin_base import bot_push_text
 from datetime import datetime, timedelta,date
-from base import get_system_path
+from guangxin_base import get_system_path
 # 读取配置文件
 config_file_path = get_system_path('SQLserver')  # 根据实际情况调整路径
 # 写一个随机生成ua的函数
@@ -91,6 +91,10 @@ config_data = read_config(config_file_path)
 def upload_to_sql_server(df, table_name, timestamp_column,schema, if_exists='replace',is_time=True):
     # 可以选择'replace'或'append_no_duplicates'
     # 判断操作系统类型
+    try:
+        df = df.rename(columns={'Consolidated Order (ACN)': 'SPO #'})
+    except:
+        pass
     os_type = platform.system()
     # 从配置文件中获取所需的值
     server = config_data['server']
@@ -196,7 +200,6 @@ def get_servertoken(config_file_path=get_system_path('airy_hib_account')):
         "targetDomain": "houseinbox.com",
     }
     response = requests.post(url, headers=headers, data=json.dumps(payload))
-
     # 检查登录是否成功
     if response.status_code == 200:
         json_response = response.json()
@@ -320,19 +323,19 @@ def download_upload_trans_inv():
     "userid": "485",
     "currentdomain": "doccenter.net"
   }
-
+  print(headers)
   payload = {
   "aquery": {
     "pageDomain": {
       "pageIndex": 1,
       "pageSize": 10,
-      "recordCount": 48,
+      "recordCount": 50,
       "startIndex": 0
     },
     "pageFourunitDomain": {
       "pageIndex": 1,
       "pageSize": 10,
-      "recordCount": 26,
+      "recordCount": 25,
       "startIndex": 0
     },
     "ifInitFalg": 1,
@@ -340,7 +343,7 @@ def download_upload_trans_inv():
     "pageSaleunitDomain": {
       "pageIndex": 1,
       "pageSize": 10,
-      "recordCount": 163,
+      "recordCount": 158,
       "startIndex": 0
     },
     "saleifInitFalg": 1
@@ -442,7 +445,7 @@ def upload_cg_inbound():
     table_name = 'CG_Inbound_Records'
     schema = "Transport"
     timestamp_column = 'Original Order Id'
-    df = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/「晓望集群」/S数据分析/CG入库记录_US.csv'))
+    df = pd.read_csv(get_system_path(None,'/Users/huzhang/Library/CloudStorage/坚果云-john.hu@39f.net/我的坚果云/S数据分析/AC_Shipments_CSV_39fInc.csv'))
     upload_to_sql_server(df, table_name, timestamp_column,schema=schema,if_exists='append_no_duplicates',is_time=False)
 
 def upload_cg_inv():
@@ -487,6 +490,9 @@ def upload_cg_ful():
     df_trans = pd.concat([df_trans_us,df_trans_ca],ignore_index=True)
     df_ful = vartoflo(df_ful,table_name_ful)
     df_trans = vartoflo(df_trans, table_name_trans)
+    df_trans['Consolidated Order (ACN)'] = df_trans['Consolidated Order (ACN)'].fillna(df_trans['SPO #'])
+    df_trans.drop('SPO #',axis=1,inplace=True)
+    df_trans.rename(columns={'Consolidated Order (ACN)':'SPO #'},inplace=True)
     try:
         df_mer = df_mer.drop(columns=['discounts', 'taxes'])
     except:
@@ -497,4 +503,4 @@ def upload_cg_ful():
     upload_to_sql_server(df_mer, table_name_mer, timestamp_column_mer,schema=schema,if_exists = 'append_no_duplicates',is_time=False)
 
 if __name__ == '__main__':
-    upload_cg_ful()
+    print(get_servertoken())

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from base import get_engine
+from guangxin_base import get_engine
 def main():
     engine = get_engine()
     # 获取当前日期的前一天
@@ -90,5 +90,6 @@ def main():
     with pd.ExcelWriter(output_file) as writer:
         us_merged_data.to_excel(writer, sheet_name='US')
         ca_merged_data.to_excel(writer, sheet_name='CA')
+
 if __name__ == '__main__':
     main()
